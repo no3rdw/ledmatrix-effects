@@ -3,37 +3,42 @@ from device import Device
 device = Device()
 from clock import Clock
 from static import Static
+from menu import Menu
 
 ##### App variables 
 effects = ['Static','Clock']
-device.changeEffectByIndex(1)
-gc.collect()
 
 # https://learn.adafruit.com/circuitpython-display-support-using-displayio/library-overview
 
+menu = Menu(device)
+device.changeEffectByIndex(0)
+gc.collect()
+
 while True:
-	if device.neokey[0]:
-		device.neokey.pixels[0] = (255, 200, 40)
-		device.keypixelStatus[0] = True
-	else:
-		device.resetKeypixel(0)
-	if device.neokey[1]:
-		device.neokey.pixels[1] = (255, 200, 40)
-		device.keypixelStatus[1] = True
-	else:
-		device.resetKeypixel(1)
-	if device.neokey[2]:
-		device.neokey.pixels[2] = (255, 200, 40)
-		device.keypixelStatus[2] = True
-	else:
-		device.resetKeypixel(2)
-	if device.neokey[3]:
-		if (device.limitStep(.5, device.lastButtonTick)):
-				device.setLastButtonTick()
-				device.neokey.pixels[3] = (255, 200, 40)
-				device.keypixelStatus[3] = True
-				device.cycleEffect()
-	else:
-		device.resetKeypixel(3)
+	keys = device.neokey.get_keys() # using this is MUCH faster than referencing device.neokey[x] over and over 
+	if device.menu_group.hidden and sum(keys): # only enter this loop if a button is down
+		if keys[0]:
+			device.neokey.pixels[0] = (255, 200, 40)
+		else:
+			device.resetKeypixel(0)
+		if keys[1]:
+			device.neokey.pixels[1] = (255, 200, 40)
+		else:
+			device.resetKeypixel(1)
+		if keys[2]:
+			device.neokey.pixels[2] = (255, 200, 40)
+		else:
+			device.resetKeypixel(2)
+		if keys[3]:
+			if (device.limitStep(.25, device.lastButtonTick)):
+					device.setLastButtonTick()
+					device.neokey.pixels[3] = (255, 200, 40)
+					menu.showMenu(device)
+					#device.cycleEffect()
+		else:
+			device.resetKeypixel(3)
+
+	if not device.menu_group.hidden: # only play the menu loop if menu is open
+		menu.play(device)
 
 	device.effect.play(device)
