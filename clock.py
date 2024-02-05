@@ -25,9 +25,9 @@ class Clock:
 		startclock = "%d:%02d:%02d" % (self.fixHour(t.tm_hour), t.tm_min, t.tm_sec)
 
 		self.line1 = adafruit_display_text.label.Label(
-			fontToUse, color=0xffff00, text=startclock, line_spacing=.9,label_direction='LTR')
-		self.line1.x = 0
-		self.line1.y = 15
+			fontToUse, color=0xffff00, text=startclock, line_spacing=1,label_direction='LTR',anchor_point=[.5,.5],anchored_position=[16,15])
+		#self.line1.x = 0
+		#self.line1.y = 15
 
 		g = displayio.Group()
 		g.append(self.line1)

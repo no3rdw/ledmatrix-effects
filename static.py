@@ -1,6 +1,4 @@
-import terminalio
-import displayio, time, random, math
-from micropython import const
+import displayio, random, math
 
 class Static:
 	def __init__(self, device):
@@ -8,10 +6,11 @@ class Static:
 		self.lastButtonTick = 0
 
 		# Create a bitmap with X colors
-		self.bitmap = displayio.Bitmap(device.display.width, device.display.height, 4)
+		self.colorcount = 4
+		self.bitmap = displayio.Bitmap(device.display.width, device.display.height, self.colorcount)
 
-		# Create a two color palette
-		palette = displayio.Palette(4)
+		# Create a color palette
+		palette = displayio.Palette(self.colorcount)
 		palette[0] = 0x000000
 		palette[1] = 0x253B21
 		palette[2] = 0xFF00FF
@@ -64,7 +63,7 @@ class Static:
 				self.bitmap[randpixel] = 0
 			else:
 				self.bitmap[randpixel] = 1'''
-			self.bitmap[randpixel] = random.randrange(0,4)
+			self.bitmap[randpixel] = random.randrange(0,self.colorcount)
 		
 		self.x = self.easeInOutQuart(self.i / self.maxchanged) * self.maxchanged
 

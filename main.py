@@ -5,7 +5,7 @@ from clock import Clock
 from static import Static
 
 ##### App variables 
-effects = ['Clock','Static']
+effects = ['Static','Clock']
 device.changeEffectByIndex(1)
 gc.collect()
 
