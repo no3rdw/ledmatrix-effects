@@ -50,20 +50,21 @@ class Device:
 		button.pull = Pull.DOWN
 		return button
 	
-	def cycleEffect(self):
+	def cycleEffect(self, direction:int):
 		currentIndex = locals()['effects'].index(self.effect.name)
-		newIndex = currentIndex + 1
+		newIndex = currentIndex + direction
 		if newIndex > len(locals()['effects'])-1:
 			newIndex = 0
+		elif newIndex < 0:
+			newIndex = len(locals()['effects'])-1
 		self.changeEffectByIndex(newIndex)
 
 	def changeEffect(self, e:str):
 		if not hasattr(self.effect, 'name') or e != self.effect.name:
 			self.effect = locals()[e](self)
-			locals()['menu'].getEffectMenu(self)
-			locals()['menu'].refreshOptionLabel(self)
-			gc.collect()
-			print(str(gc.mem_free()))
+			locals()['menu'].getEffectMenu()
+			locals()['menu'].refreshOptionLabel()
+			self.gc()
 
 	def changeEffectByIndex(self, e:int):
 		self.changeEffect(locals()['effects'][e])
@@ -84,3 +85,7 @@ class Device:
 	def clearDisplayGroup(self, group:displayio.Group):
 		while len(group) > 0:
 			group.pop(0)
+
+	def gc(self):
+		gc.collect()
+		print(str(gc.mem_free()))

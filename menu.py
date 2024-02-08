@@ -9,6 +9,7 @@ class Menu:
 		self.menu = []
 		self.effectmenu = []
 		self.carat = 0
+		self.device = device
 
 		self.menucolor = 0xffff00
 		self.selectedcolor = 0x660000
@@ -51,10 +52,17 @@ class Menu:
 
 		device.menu_group.hidden = 1
 		
-	def showMenu(self, device):
+	def showMenu(self):
 		# call showMenu AFTER initial effect is loaded
-		self.refreshOptionLabel(device)
-		device.menu_group.hidden = 0 # show menu
+		self.refreshOptionLabel()
+		self.device.menu_group.hidden = 0 # show menu
+
+	def hideMenu(self):
+		self.device.menu_group.hidden = 1
+		self.device.resetKeypixel(0)
+		self.device.resetKeypixel(1)
+		self.device.resetKeypixel(2)
+		self.device.resetKeypixel(3)
 
 	def highlightCarat(self):
 		i=0
@@ -62,27 +70,27 @@ class Menu:
 			self.menu[i].color = self.menucolor if self.carat != i else self.selectedcolor
 			i += 1
 
-	def refreshOptionLabel(self, device:Device):
+	def refreshOptionLabel(self):
 		if self.carat == 0:
-			self.optionlabel.text = device.effect.name
-		elif self.carat == 1 and hasattr(device.effect, 'optionlabel1'):
-			self.optionlabel.text = device.effect.optionlabel1(device)
-		elif self.carat == 2 and hasattr(device.effect, 'optionlabel2'):
-			self.optionlabel.text = device.effect.optionlabel2(device)
-		elif self.carat == 3 and hasattr(device.effect, 'optionlabel3'):
-			self.optionlabel.text = device.effect.optionlabel3(device)
+			self.optionlabel.text = self.device.effect.name
+		elif self.carat == 1 and hasattr(self.device.effect, 'optionlabel1'):
+			self.optionlabel.text = self.device.effect.optionlabel1()
+		elif self.carat == 2 and hasattr(self.device.effect, 'optionlabel2'):
+			self.optionlabel.text = self.device.effect.optionlabel2()
+		elif self.carat == 3 and hasattr(self.device.effect, 'optionlabel3'):
+			self.optionlabel.text = self.device.effect.optionlabel3()
 
-	def changeOption(self, device:Device):
+	def changeOption(self, direction:int):
 		if self.carat == 0:
-			device.cycleEffect()
-		elif self.carat == 1 and hasattr(device.effect, 'setoption1'):
-			device.effect.setoption1(device)
-		elif self.carat == 2 and hasattr(device.effect, 'setoption2'):
-			device.effect.setoption2(device)
-		elif self.carat == 3 and hasattr(device.effect, 'setoption3'):
-			device.effect.setoption3(device)
+			self.device.cycleEffect(direction)
+		elif self.carat == 1 and hasattr(self.device.effect, 'setoption1'):
+			self.device.effect.setoption1(direction)
+		elif self.carat == 2 and hasattr(self.device.effect, 'setoption2'):
+			self.device.effect.setoption2(direction)
+		elif self.carat == 3 and hasattr(self.device.effect, 'setoption3'):
+			self.device.effect.setoption3(direction)
 
-	def moveCarat(self, device:Device, direction:int):
+	def moveCarat(self, direction:int):
 		if direction > 0:
 			# moving down
 			self.carat = self.carat + 1 if self.carat < len(self.effectmenu) else 0
@@ -90,12 +98,12 @@ class Menu:
 			#moving up
 			self.carat = self.carat - 1 if self.carat > 0 else len(self.effectmenu)
 		self.highlightCarat()
-		self.refreshOptionLabel(device)
+		self.refreshOptionLabel()
 
-	def getEffectMenu(self, device:Device):
+	def getEffectMenu(self):
 		self.effectmenu = []
-		if hasattr(device.effect, 'menu'):
-			self.effectmenu = device.effect.menu
+		if hasattr(self.device.effect, 'menu'):
+			self.effectmenu = self.device.effect.menu
 			self.menu[1].text = ''
 			self.menu[2].text = ''
 			self.menu[3].text = ''
@@ -104,44 +112,44 @@ class Menu:
 				self.menu[i+1].text = self.effectmenu[i]
 				i += 1
 
-	def play(self, device:Device):	
+	def play(self):	
 		if sum(locals()['keys']): # only enter this loop if a button is down
 			if locals()['keys'][3]:
-				if (device.limitStep(.15, device.lastButtonTick)):
-						device.setLastButtonTick()
-						device.neokey.pixels[3] = (255, 200, 40)
-						device.menu_group.hidden = 1 # hide menu
-						device.resetKeypixel(0)
-						device.resetKeypixel(1)
-						device.resetKeypixel(2)
-						device.resetKeypixel(3)
+				if (self.device.limitStep(.15, self.device.lastButtonTick)):
+					self.device.setLastButtonTick()
+					self.hideMenu()
+					#self.device.neokey.pixels[3] = (255, 200, 40)
+					#if self.carat == 0:
+					#	self.hideMenu()
+					#else:
+					#	self.moveCarat(-1)
 			else:
-				device.resetKeypixel(3)
+				self.device.resetKeypixel(3)
 
 			if locals()['keys'][2]:
-				if (device.limitStep(.15, device.lastButtonTick)):
-					device.setLastButtonTick()
-					device.neokey.pixels[2] = (255, 200, 40)
-					self.moveCarat(device, -1)
+				if (self.device.limitStep(.15, self.device.lastButtonTick)):
+					self.device.setLastButtonTick()
+					self.device.neokey.pixels[2] = (255, 200, 40)
+					self.moveCarat(1)
 			else:
-				device.resetKeypixel(2)
+				self.device.resetKeypixel(2)
 
 			if locals()['keys'][1]:
-				if (device.limitStep(.15, device.lastButtonTick)):
-					device.setLastButtonTick()
-					device.neokey.pixels[1] = (255, 200, 40)
-					self.moveCarat(device, 1)
+				if (self.device.limitStep(.15, self.device.lastButtonTick)):
+					self.device.setLastButtonTick()
+					self.device.neokey.pixels[1] = (255, 200, 40)
+					self.changeOption(-1)
 			else:
-				device.resetKeypixel(1)
+				self.device.resetKeypixel(1)
 
 			if locals()['keys'][0]:
-				if (device.limitStep(.15, device.lastButtonTick)):
-					device.setLastButtonTick()
-					device.neokey.pixels[0] = (255, 200, 40)
-					self.changeOption(device)
+				if (self.device.limitStep(.15, self.device.lastButtonTick)):
+					self.device.setLastButtonTick()
+					self.device.neokey.pixels[0] = (255, 200, 40)
+					self.changeOption(1)
 			else:
-				device.resetKeypixel(0)
+				self.device.resetKeypixel(0)
 
-		if (device.limitStep(.15, self.lastOptionLabelRefresh)):
+		if (self.device.limitStep(.15, self.lastOptionLabelRefresh)):
 			self.lastOptionLabelRefresh = time.monotonic()
-			self.refreshOptionLabel(device)
+			self.refreshOptionLabel()

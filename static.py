@@ -1,31 +1,56 @@
-import displayio, random, math
+import displayio, random, math, colorsys
 
 class Static:
-	def __init__(self, device:Device, colorcount=8, maxchanged=10):
+	def __init__(self, device:Device, palette=0, maxchanged=10):
 		self.name = 'Static'
+		self.device = device
 
-		# Customize
 		self.speed = .05
 		self.maxchanged = maxchanged
+		self.selectedPalette = palette
 
-		# Create a bitmap with X colors
-		self.colorcount = colorcount
+		# Create color palettes
+		self.palettes = []
+		self.paletteNames = ['Pinks', 'B&W', 'Rainbow']
+		
+		p = displayio.Palette(6)
+		p[0] = colorsys.hls_to_rgb(.8, .1, 1)
+		p[1] = colorsys.hls_to_rgb(.85, .3, 1)
+		p[2] = colorsys.hls_to_rgb(.9, .5, 1)
+		p[3] = colorsys.hls_to_rgb(.95, .6, 1)
+		p[4] = colorsys.hls_to_rgb(.5, .7, 1)
+		p[5] = colorsys.hls_to_rgb(.1, .8, 1)
+		self.palettes.append(p)
+
+		p = displayio.Palette(6)
+		p[0] = colorsys.hsv_to_rgb(0, .01, .05)
+		p[1] = colorsys.hsv_to_rgb(0, .01, .15)
+		p[2] = colorsys.hsv_to_rgb(0, .01, .25)
+		p[3] = colorsys.hsv_to_rgb(0, .01, .3)
+		p[4] = colorsys.hsv_to_rgb(0, .01, .5)
+		p[4] = colorsys.hsv_to_rgb(0, .01, 1)
+		self.palettes.append(p)
+
+		p = displayio.Palette(10)
+		p[0] = colorsys.hsv_to_rgb(.1, 1, .5)
+		p[1] = colorsys.hsv_to_rgb(.2, 1, .5)
+		p[2] = colorsys.hsv_to_rgb(.3, 1, .5)
+		p[3] = colorsys.hsv_to_rgb(.4, 1, .5)
+		p[4] = colorsys.hsv_to_rgb(.5, 1, .5)
+		p[5] = colorsys.hsv_to_rgb(.6, 1, .5)
+		p[6] = colorsys.hsv_to_rgb(.7, 1, .5)
+		p[7] = colorsys.hsv_to_rgb(.8, 1, .5)
+		p[8] = colorsys.hsv_to_rgb(.9, 1, .5)
+		p[9] = colorsys.hsv_to_rgb(.0, 1, .5)
+		self.palettes.append(p)
+
+		self.colorcount = len(self.palettes[self.selectedPalette])
+
+		# Create a bitmap with the number of colors in the selected palette
 		self.bitmap = displayio.Bitmap(device.display.width, device.display.height, self.colorcount)
 
-		# Create a color palette
-		palette = displayio.Palette(self.colorcount)
-		palette[0] = 0x000000
-		palette[1] = 0x253B21
-		if (self.colorcount > 2):
-			palette[2] = 0xFF00FF
-			palette[3] = 0x00FF00
-			palette[4] = 0x0000FF
-			palette[5] = 0xCC00FF
-			palette[6] = 0x00CCFF
-			palette[7] = 0xFF00CC
-
 		# Create a TileGrid using the Bitmap and Palette
-		tile_grid = displayio.TileGrid(self.bitmap, pixel_shader=palette)
+		tile_grid = displayio.TileGrid(self.bitmap, pixel_shader=self.palettes[self.selectedPalette])
 
 		device.clearDisplayGroup(device.effect_group)
 		device.effect_group.append(tile_grid)
@@ -38,21 +63,23 @@ class Static:
 
 		for x in range(0, device.display.width):
 			for y in range(0, device.display.height):
-				self.bitmap[x, y] = random.randrange(0,self.colorcount) #initially only set to first two colors
+				self.bitmap[x, y] = random.randrange(0,self.colorcount)
 
-	def setoption1(self, device):
-		if self.colorcount > 2:
-			self.__init__(device=device, colorcount=2, maxchanged=self.maxchanged)
-		else:
-			self.__init__(device=device, maxchanged=self.maxchanged)
+	def setoption1(self, direction:int):
+		a = self.selectedPalette + direction if self.selectedPalette + direction < len(self.palettes) else 0
+		if a < 0: a = len(self.palettes)-1
+		print(a)
 
-	def setoption2(self, device):
-		self.maxchanged = self.maxchanged + 10 if self.maxchanged < 300 else 10
+		self.__init__(device=self.device, palette=a, maxchanged=self.maxchanged)
 
-	def optionlabel1(self, device):
-		return 'Color' if self.colorcount > 2 else 'B&W'
+	def setoption2(self, direction:int):
+		self.maxchanged = self.maxchanged + (direction*10) if self.maxchanged <= 300 else (direction*10)
+		if self.maxchanged < 0: self.maxchanged = 300
 
-	def optionlabel2(self, device):
+	def optionlabel1(self):
+		return self.paletteNames[self.selectedPalette]
+
+	def optionlabel2(self):
 		return str(self.maxchanged)
 
 	# https://easings.net/
@@ -71,10 +98,10 @@ class Static:
 		else:
 			return 1 - math.pow(-2 * x + 2, 4) / 2
 
-	def play(self, device:Device):
+	def play(self):
 		#for x in range(0, self.x):
 		for x in range(0, self.maxchanged):
-			randpixel = [random.randrange(0, device.display.width), random.randrange(0, device.display.height)]
+			randpixel = [random.randrange(0, self.device.display.width), random.randrange(0, self.device.display.height)]
 			self.bitmap[randpixel] = random.randrange(0,self.colorcount)
 		
 		'''self.x = self.easeInOutQuart(self.i / self.maxchanged) * self.maxchanged
@@ -86,8 +113,8 @@ class Static:
 		else:
 			self.i = self.i + self.speed'''
 		
-		if device.menu_group.hidden and sum(locals()['keys']):
+		if self.device.menu_group.hidden and sum(locals()['keys']):
 			if locals()['keys'][0]:
-				if (device.limitStep(.15, device.lastButtonTick)):
+				if (self.device.limitStep(.15, self.device.lastButtonTick)):
 					self.bitmap.fill(0)
 			

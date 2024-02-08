@@ -1,4 +1,4 @@
-import gc
+
 from device import Device
 device = Device()
 from clock import Clock
@@ -12,7 +12,7 @@ effects = ['Static','Clock']
 
 menu = Menu(device)
 device.changeEffectByIndex(0)
-gc.collect()
+device.gc()
 
 while True:
 	keys = device.neokey.get_keys() # using this is MUCH faster than referencing device.neokey[x] over and over 
@@ -30,15 +30,14 @@ while True:
 		else:
 			device.resetKeypixel(2)
 		if keys[3]:
-			if (device.limitStep(.25, device.lastButtonTick)):
+			if (device.limitStep(.15, device.lastButtonTick)):
 					device.setLastButtonTick()
 					device.neokey.pixels[3] = (255, 200, 40)
-					menu.showMenu(device)
-					#device.cycleEffect()
+					menu.showMenu()
 		else:
 			device.resetKeypixel(3)
 
 	if not device.menu_group.hidden: # only play the menu loop if menu is open
-		menu.play(device)
+		menu.play()
 
-	device.effect.play(device)
+	device.effect.play()
