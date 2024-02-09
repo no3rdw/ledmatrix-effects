@@ -5,14 +5,14 @@ class ITYSL:
 		self.name = 'ITYSL'
 		self.device = device
 
-		self.speed = .05
+		self.maxlines = 15
 		self.freeze = 0
 				
 		self.p = displayio.Palette(6)
-		self.p[0] = colorsys.hls_to_rgb(.49, .3, .35) # teal bg
+		self.p[0] = colorsys.hls_to_rgb(.49, .3, .35) # cyan bg
 		#self.p[0] = 0x000000
 		self.p[1] = colorsys.hls_to_rgb(.17, .5, 1) #yellow
-		self.p[2] = colorsys.hls_to_rgb(.49, .5, .35) # light teal
+		self.p[2] = colorsys.hls_to_rgb(.49, .6, .5) # light cyan
 		self.p[3] = colorsys.hls_to_rgb(.01, .55, 1) # coral
 		self.p[4] = colorsys.hls_to_rgb(.68, .05, .7) # navy blue
 		self.p[5] = colorsys.hls_to_rgb(.2, .3, .2) # tan
@@ -47,19 +47,20 @@ class ITYSL:
 		h = self.device.display.height*5
 		self.lineheight.append(h)
 		
-		tilt = 20
-		x = random.randrange(-4,self.device.display.width+4)
+		w = 4 # line thickness
+		t = 20 # line tilt range
+		x = random.randrange(-w,self.device.display.width+w)
 		x0 = 0
 		y0 = 0
 		if self.linedirectiony[len(self.linedirectiony)-1] == 1:
-			y = 0-h
+			y = 0-h # start off the top of the screen
 		else:
-			y = self.device.display.height
-		x1 = x0 + random.randrange(-tilt, tilt)
+			y = self.device.display.height # start off the bottom of the screen
+		x1 = x0 + random.randrange(-t, t) # apply random tilt
 		y1 = y0 + h
 
 		# switched to vectorio polygon to allow for thicker lines AND less memory usage
-		return vectorio.Polygon(pixel_shader=self.p, points=[(x0,y0),(x1,y1),(x1+3,y1),(x0+3,y0)], x=x, y=y, color_index=random.randrange(1, self.colorcount))
+		return vectorio.Polygon(pixel_shader=self.p, points=[(x0,y0),(x1,y1),(x1+w,y1),(x0+w,y0)], x=x, y=y, color_index=random.randrange(1, self.colorcount))
 
 	def removeLine(self, i):
 		#print('line ', i, 'removed')
@@ -89,8 +90,9 @@ class ITYSL:
 		return ''
 
 	def play(self):
-		if (self.device.limitStep(.1, self.lastLineCheck)):
-			if len(self.lines) < 10:
+		
+		if (self.device.limitStep(.1, self.lastLineCheck) and self.freeze == 0):
+			if len(self.lines) < self.maxlines:
 				self.lines.append(self.addLine())
 				self.device.gc(1)
 				#print(len(self.lines), len(self.linedirectionx), len(self.linedirectiony), len(self.lineheight), len(self.linespeed))
@@ -108,7 +110,10 @@ class ITYSL:
 				i = i + 1
 			self.lastFrame = time.monotonic()
 
-		self.freeze = 0
+		if self.freeze == 1:
+			if not locals()['keys'][0]:
+				self.freeze = 0
+
 		if self.device.menu_group.hidden and sum(locals()['keys']):
 			if locals()['keys'][0]:
 				self.freeze = 1

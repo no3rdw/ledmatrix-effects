@@ -64,7 +64,7 @@ class Device:
 			self.effect = locals()[e](self)
 			locals()['menu'].getEffectMenu()
 			locals()['menu'].refreshOptionLabel()
-			self.gc()
+			self.gc(1)
 
 	def changeEffectByIndex(self, e:int):
 		self.changeEffect(locals()['effects'][e])
