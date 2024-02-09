@@ -4,9 +4,10 @@ device = Device()
 from clock import Clock
 from static import Static
 from menu import Menu
+from itysl import ITYSL
 
 ##### App variables 
-effects = ['Static','Clock']
+effects = ['ITYSL','Static','Clock']
 
 # https://learn.adafruit.com/circuitpython-display-support-using-displayio/library-overview
 

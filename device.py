@@ -86,6 +86,6 @@ class Device:
 		while len(group) > 0:
 			group.pop(0)
 
-	def gc(self):
+	def gc(self, output:int=0):
 		gc.collect()
-		print(str(gc.mem_free()))
+		if output: print(str(gc.mem_free()))

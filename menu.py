@@ -1,5 +1,4 @@
 import adafruit_display_text.label
-import adafruit_display_shapes.rect
 import time
 
 class Menu:
@@ -19,8 +18,6 @@ class Menu:
 
 		#longtext = adafruit_display_text.wrap_text_to_pixels("MENU TEST",device.matrix.width,device.font)
 		#longtext = "\n".join(longtext)
-
-		#self.menubg = adafruit_display_shapes.rect.Rect(x=1,y=1, width=25, height=23, fill=0x000000)
 
 		self.menu.append(adafruit_display_text.label.Label(
 			device.font, color=self.selectedcolor, background_color=0x000000, text='Effect', line_spacing=1,
