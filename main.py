@@ -5,14 +5,17 @@ from clock import Clock
 from static import Static
 from menu import Menu
 from itysl import ITYSL
+from itysl1 import ITYSL1
+import random
 
 ##### App variables 
-effects = ['ITYSL','Static','Clock']
+effects = ['ITYSL1','ITYSL','Static','Clock']
 
 # https://learn.adafruit.com/circuitpython-display-support-using-displayio/library-overview
 
 menu = Menu(device)
 device.changeEffectByIndex(0)
+#device.changeEffectByIndex(random.randrange(0,2))
 device.gc()
 
 while True:

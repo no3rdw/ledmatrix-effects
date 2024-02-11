@@ -1,7 +1,7 @@
 import displayio, random, math, colorsys
 
 class Static:
-	def __init__(self, device:Device, palette=0, maxchanged=10):
+	def __init__(self, device:Device, palette:int=0, maxchanged:int=10):
 		self.name = 'Static'
 		self.device = device
 

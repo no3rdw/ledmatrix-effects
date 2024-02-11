@@ -10,7 +10,6 @@ class ITYSL:
 				
 		self.p = displayio.Palette(6)
 		self.p[0] = colorsys.hls_to_rgb(.49, .3, .35) # cyan bg
-		#self.p[0] = 0x000000
 		self.p[1] = colorsys.hls_to_rgb(.17, .5, 1) #yellow
 		self.p[2] = colorsys.hls_to_rgb(.49, .7, .5) # light cyan
 		self.p[3] = colorsys.hls_to_rgb(.01, .55, 1) # coral
@@ -71,24 +70,17 @@ class ITYSL:
 		self.linegroup.pop(i)
 		self.lines.pop(i)
 
-	def setoption1(self, direction:int):
-		pass
-		#a = self.selectedPalette + direction if self.selectedPalette + direction < len(self.palettes) else 0
-		#if a < 0: a = len(self.palettes)-1
-		#print(a)
+	#def setoption1(self, direction:int):
+	#	pass
 
-		#self.__init__(device=self.device, palette=a, maxchanged=self.maxchanged)
+	#def setoption2(self, direction:int):
+	#	pass
 
-	def setoption2(self, direction:int):
-		pass
-		#self.maxchanged = self.maxchanged + (direction*10) if self.maxchanged <= 300 else (direction*10)
-		#if self.maxchanged < 0: self.maxchanged = 300
+	#def optionlabel1(self):
+	#	return ''
 
-	def optionlabel1(self):
-		return ''
-
-	def optionlabel2(self):
-		return ''
+	#def optionlabel2(self):
+	#	return ''
 
 	def play(self):
 		if (self.device.limitStep(.2, self.lastLineCheck) and self.freeze == 0):
