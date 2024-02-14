@@ -10,9 +10,9 @@ class Menu:
 		self.carat = 0
 		self.device = device
 
-		self.menucolor = 0xffff00
-		self.selectedcolor = 0x660000
-		self.optioncolor = 0x006666
+		self.menucolor = device.hls(.18, .5, 1)
+		self.selectedcolor = device.hls(.01, .2, 1)
+		self.optioncolor = device.hls(.6, .4, 1)
 
 		self.lastOptionLabelRefresh = 0
 

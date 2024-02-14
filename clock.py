@@ -1,5 +1,5 @@
 import adafruit_display_text.label
-import displayio, time
+import time
 
 class Clock:
 	def __init__(self, device:Device):

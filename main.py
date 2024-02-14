@@ -5,11 +5,10 @@ from clock import Clock
 from static import Static
 from menu import Menu
 from itysl import ITYSL
-from itysl1 import ITYSL1
 import random
 
 ##### App variables 
-effects = ['ITYSL1','ITYSL','Static','Clock']
+effects = ['ITYSL','Static','Clock']
 
 # https://learn.adafruit.com/circuitpython-display-support-using-displayio/library-overview
 

@@ -7,6 +7,7 @@ import displayio
 import framebufferio
 import gc
 import displayio
+import colorsys
 from adafruit_bitmap_font import bitmap_font
 
 class Device:
@@ -33,6 +34,8 @@ class Device:
 			
 		self.display = framebufferio.FramebufferDisplay(self.matrix, auto_refresh=True)
 		self.display.root_group = displayio.Group()
+		# FramebufferDisplay.brightness is non-functional with this RGBMatrix (?), so we will implement our own brightness setting by modifying the level of all the HSL values
+		self.brightness = 1
 
 		self.effect_group = displayio.Group()
 		self.display.root_group.append(self.effect_group)
@@ -43,6 +46,7 @@ class Device:
 		self.font = bitmap_font.load_font("lib/fonts/04B_03__6pt.bdf")
 		self.font.load_glyphs('1234567890QWERTYUIOPLKJHGFDSAZXCVBNMmnbvcxzasdfghjklpoiuytrewq&')
 		self.lastButtonTick = 0
+
 
 	def init_button(self, pin:int):
 		button = DigitalInOut(pin)
@@ -89,3 +93,25 @@ class Device:
 	def gc(self, output:int=0):
 		gc.collect()
 		if output: print(str(gc.mem_free()))
+
+	def hls(self, h:float, l:float, s:float):
+		return colorsys.hls_to_rgb(h,self.brightness*l, s)
+	
+	# https://easings.net/
+	'''def easeInOutSine(self, x:int):
+		return -(math.cos(math.pi * x) - 1) / 2
+
+	def easeInOutQuad(self, x:int):
+		if x < .5:
+			return 2 * x * x
+		else:
+			return 1 - math.pow(-2 * x + 2, 2) / 2
+		
+	def easeInOutQuart(self, x:int):
+		if x < 0.5:
+			return  8 * x * x * x * x 
+		else:
+			return 1 - math.pow(-2 * x + 2, 4) / 2
+	'''
+	#self.x = self.easeInOutQuart(self.i / self.maxchanged) * self.maxchanged
+	

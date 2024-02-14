@@ -1,4 +1,4 @@
-import displayio, random, math, colorsys, time, vectorio
+import displayio, random, math, time, vectorio
 
 class ITYSL1:
 
@@ -23,24 +23,24 @@ class ITYSL1:
 		self.paletteNames = ['Blue', 'Red']
 
 		p = displayio.Palette(6)
-		p[0] = colorsys.hls_to_rgb(.6, .25, .3) # baby blue bg
-		p[1] = colorsys.hls_to_rgb(.17, .5, 1) #yellow
-		p[2] = colorsys.hls_to_rgb(.42, .4, .45) # cyan
-		p[3] = colorsys.hls_to_rgb(.68, .05, .7) # navy blue
-		p[4] = colorsys.hls_to_rgb(.5, .55, .45) # cyan
-		p[5] = colorsys.hls_to_rgb(.17, .5, 1) #yellow (again)
+		p[0] = device.hls(.6, .25, .3) # baby blue bg
+		p[1] = device.hls(.17, .5, 1) #yellow
+		p[2] = device.hls(.42, .4, .45) # cyan
+		p[3] = device.hls(.68, .05, .7) # navy blue
+		p[4] = device.hls(.5, .55, .45) # cyan
+		p[5] = device.hls(.17, .5, 1) #yellow (again)
 		self.palettes.append(p)
 
 		p = displayio.Palette(9)
-		p[0] = colorsys.hls_to_rgb(.05, .15, .7) # red-brown bg
-		p[1] = colorsys.hls_to_rgb(.17, .25, .3) #tan
-		p[2] = colorsys.hls_to_rgb(.17, .2, .8) # mustard
-		p[3] = colorsys.hls_to_rgb(.02, .03, .6) # dark red-brown
-		p[4] = colorsys.hls_to_rgb(.85, .3, .5) # bright purple
-		p[5] = colorsys.hls_to_rgb(.6, .25, .3) # baby blue
-		p[6] = colorsys.hls_to_rgb(.42, .3, .25) # cyan
-		p[7] = colorsys.hls_to_rgb(.17, .25, .7) #tan
-		p[8] = colorsys.hls_to_rgb(.42, .02, .35) #dark green
+		p[0] = device.hls(.05, .15, .7) # red-brown bg
+		p[1] = device.hls(.17, .25, .3) #tan
+		p[2] = device.hls(.17, .2, .8) # mustard
+		p[3] = device.hls(.02, .03, .6) # dark red-brown
+		p[4] = device.hls(.85, .3, .5) # bright purple
+		p[5] = device.hls(.6, .25, .3) # baby blue
+		p[6] = device.hls(.42, .3, .25) # cyan
+		p[7] = device.hls(.17, .25, .7) #tan
+		p[8] = device.hls(.42, .02, .35) #dark green
 		self.palettes.append(p)
 
 		self.colorcount = len(self.palettes[self.selectedPalette])
@@ -119,18 +119,6 @@ class ITYSL1:
 		
 		self.prevline = newline
 		return newline['poly']
-
-	#def setoption1(self, direction:int):
-	#	pass
-
-	#def setoption2(self, direction:int):
-	#	pass
-
-	#def optionlabel1(self):
-	#	return ''
-
-	#def optionlabel2(self):
-	#	return ''
 
 	def play(self):
 		if self.done != True:
