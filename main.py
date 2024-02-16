@@ -14,7 +14,7 @@ effects = ['ITYSL','Static','Clock']
 
 menu = Menu(device)
 device.changeEffectByIndex(0)
-#device.changeEffectByIndex(random.randrange(0,2))
+#device.changeEffectByIndex(random.randrange(0,len(effects)))
 device.gc()
 
 while True:

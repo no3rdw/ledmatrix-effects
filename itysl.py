@@ -4,11 +4,105 @@ class ITYSL:
 	def __init__(self, device:Device):
 		self.name = 'ITYSL'
 		self.device = device
-		self.menu = []
+		self.menu = ['Time']
 		self.subEffects = ['Lines', 'Spiral', 'Circles']
 
-		self.initSpiral(device)
+		self.subEffectSwitch = time.monotonic()
+		self.selectedSwitchTime = 5.4 # seconds
+		self.subEffectSwitchTimes = [0,5.4,10.8,30,60]
+
+		self.subEffect = self.subEffects[random.randrange(0, len(self.subEffects))]
+		self.cycleSubEffect(0)
+	
+	def initCircles(self, device:Device):
+		self.subEffect = 'Circles'
+		self.maxcircles = 10
+				
+		self.p = displayio.Palette(3)
+		self.p[0] = device.hls(.49, .1, .35) # cyan bg
+		self.p[1] = self.device.hls(0.075, .2, 1) #orange
+		self.p[2] = self.device.hls(.95, .25, .75)  #pink
+		self.colorcount = len(self.p)
+
+		# Create a bitmap with the number of colors in the selected palette
+		self.bitmap = displayio.Bitmap(device.display.width, device.display.height, self.colorcount)
+
+		# Create a TileGrid using the Bitmap and Palette
+		tile_grid = displayio.TileGrid(self.bitmap, pixel_shader=self.p)
 		
+		device.clearDisplayGroup(device.effect_group)
+		device.effect_group.append(tile_grid)
+
+		self.polygroup = displayio.Group()
+		self.polys = []
+
+		device.effect_group.append(self.polygroup)
+
+		#self.lastFrame = 0
+		self.lastCircleCheck = 0
+		self.totalCircles = 0
+		self.maxsize = self.device.display.width * 2
+
+	def initSpiral(self, device:Device):
+		self.subEffect = 'Spiral'
+
+		self.linethickness = 2 # line thickness
+		self.spacer = 1 # space between lines
+				
+		self.palettes = []
+		self.paletteNames = ['Blue', 'Red']
+		self.selectedPalette = random.randrange(0,len(self.paletteNames))
+
+		p = displayio.Palette(6)
+		p[0] = device.hls(.6, .25, .3) # baby blue bg
+		p[1] = device.hls(.17, .5, 1) #yellow
+		p[2] = device.hls(.42, .4, .45) # cyan
+		p[3] = device.hls(.68, .05, .7) # navy blue
+		p[4] = device.hls(.5, .55, .45) # cyan
+		p[5] = device.hls(.17, .5, 1) #yellow (again)
+		self.palettes.append(p)
+
+		p = displayio.Palette(9)
+		p[0] = device.hls(.05, .15, .7) # red-brown bg
+		p[1] = device.hls(.17, .25, .3) #tan
+		p[2] = device.hls(.17, .2, .8) # mustard
+		p[3] = device.hls(.02, .03, .6) # dark red-brown
+		p[4] = device.hls(.85, .3, .5) # bright purple
+		p[5] = device.hls(.6, .25, .3) # baby blue
+		p[6] = device.hls(.42, .3, .25) # cyan
+		p[7] = device.hls(.17, .25, .7) #tan
+		p[8] = device.hls(.42, .02, .35) #dark green
+		self.palettes.append(p)
+
+		self.colorcount = len(self.palettes[self.selectedPalette])
+
+		# Create a bitmap with the number of colors in the selected palette
+		self.bitmap = displayio.Bitmap(device.display.width, device.display.height, self.colorcount)
+
+		# Create a TileGrid using the Bitmap and Palette
+		tile_grid = displayio.TileGrid(self.bitmap, pixel_shader=self.palettes[self.selectedPalette])
+		
+		device.clearDisplayGroup(device.effect_group)
+		device.effect_group.append(tile_grid)
+		self.polygroup = displayio.Group()
+		device.effect_group.append(self.polygroup)
+
+		self.lastLineCheck = 0
+		self.lastColorChange = 0
+		self.disappearDirection = random.choice([0,1])
+
+		self.usablewidth = device.display.width
+		self.usableheight = device.display.height
+		self.usespacer = 0
+		self.done = False
+		self.prevline = {}
+		self.prevline['length'] = self.device.display.width
+		self.prevline['rotation'] = 180
+		self.prevline['direction'] = 0
+		self.prevline['x'] = self.usableheight
+		self.prevline['y'] = -self.linethickness
+		self.polys = [] # not used, but keep for consistancy w/ removePoly
+
 	def initLines(self, device:Device):
 		self.subEffect = 'Lines'
 		self.maxlines = round(device.display.width / 5)
@@ -53,100 +147,6 @@ class ITYSL:
 		self.polys.append(newcircle)
 		self.totalCircles = self.totalCircles + 1
 		return newcircle['poly']
-	
-	def initCircles(self, device:Device):
-		self.subEffect = 'Circles'
-		self.maxcircles = 10
-				
-		self.p = displayio.Palette(3)
-		self.p[0] = device.hls(.49, .1, .35) # cyan bg
-		self.p[1] = self.device.hls(0.075, .2, 1) #orange
-		self.p[2] = self.device.hls(.95, .25, .75)  #pink
-		self.colorcount = len(self.p)
-
-		# Create a bitmap with the number of colors in the selected palette
-		self.bitmap = displayio.Bitmap(device.display.width, device.display.height, self.colorcount)
-
-		# Create a TileGrid using the Bitmap and Palette
-		tile_grid = displayio.TileGrid(self.bitmap, pixel_shader=self.p)
-		
-		device.clearDisplayGroup(device.effect_group)
-		device.effect_group.append(tile_grid)
-
-		self.polygroup = displayio.Group()
-		self.polys = []
-
-		device.effect_group.append(self.polygroup)
-
-		#self.lastFrame = 0
-		self.lastCircleCheck = 0
-		self.totalCircles = 0
-		self.maxsize = self.device.display.width * 2
-
-	def initPrevline(self):
-		prevline = {}
-		prevline['length'] = self.device.display.width
-		prevline['rotation'] = 180
-		prevline['direction'] = 0
-		prevline['x'] = self.usableheight
-		prevline['y'] = -self.linethickness
-		return prevline
-	
-	def initSpiral(self, device:Device,  palette:int=random.choice([0,1])):
-		self.subEffect = 'Spiral'
-
-		self.linethickness = 2 # line thickness
-		self.spacer = 1 # space between lines
-				
-		self.selectedPalette = palette
-		self.palettes = []
-		self.paletteNames = ['Blue', 'Red']
-
-		p = displayio.Palette(6)
-		p[0] = device.hls(.6, .25, .3) # baby blue bg
-		p[1] = device.hls(.17, .5, 1) #yellow
-		p[2] = device.hls(.42, .4, .45) # cyan
-		p[3] = device.hls(.68, .05, .7) # navy blue
-		p[4] = device.hls(.5, .55, .45) # cyan
-		p[5] = device.hls(.17, .5, 1) #yellow (again)
-		self.palettes.append(p)
-
-		p = displayio.Palette(9)
-		p[0] = device.hls(.05, .15, .7) # red-brown bg
-		p[1] = device.hls(.17, .25, .3) #tan
-		p[2] = device.hls(.17, .2, .8) # mustard
-		p[3] = device.hls(.02, .03, .6) # dark red-brown
-		p[4] = device.hls(.85, .3, .5) # bright purple
-		p[5] = device.hls(.6, .25, .3) # baby blue
-		p[6] = device.hls(.42, .3, .25) # cyan
-		p[7] = device.hls(.17, .25, .7) #tan
-		p[8] = device.hls(.42, .02, .35) #dark green
-		self.palettes.append(p)
-
-		self.colorcount = len(self.palettes[self.selectedPalette])
-
-		# Create a bitmap with the number of colors in the selected palette
-		self.bitmap = displayio.Bitmap(device.display.width, device.display.height, self.colorcount)
-
-		# Create a TileGrid using the Bitmap and Palette
-		tile_grid = displayio.TileGrid(self.bitmap, pixel_shader=self.palettes[self.selectedPalette])
-		
-		device.clearDisplayGroup(device.effect_group)
-		device.effect_group.append(tile_grid)
-		self.polygroup = displayio.Group()
-		device.effect_group.append(self.polygroup)
-
-		self.lastLineCheck = 0
-		self.lastColorChange = 0
-		self.disappearDirection = random.choice([0,1])
-		self.nextPalette = random.choice([0,1])
-
-		self.usablewidth = device.display.width
-		self.usableheight = device.display.height
-		self.usespacer = 0
-		self.done = False
-		self.prevline = self.initPrevline()
-		self.polys = [] # not used, but keep for consistancy w/ removePoly
 
 	def rotatePoint(self, point, center, angle):
 		angle = (angle) * (math.pi/180) #Convert to radians
@@ -209,7 +209,7 @@ class ITYSL:
 		newline['timer'] = 0
 		
 		newline['width'] = 4 # line thickness
-		t = random.randrange(-10, 5) # line tilt range
+		t = random.randrange(-9, 6) # line tilt range
 
 		#starting positions
 		x = random.randrange(-newline['width'],self.device.display.width+newline['width'])
@@ -235,9 +235,42 @@ class ITYSL:
 
 	def easeOutSine(self, x:float):
 		return math.sin((x * math.pi) / 2)
+	
+	def cycleSubEffect(self, direction:int):
+		currentIndex = self.subEffects.index(self.subEffect)
+		newIndex = currentIndex + direction
+		if newIndex > len(self.subEffects)-1:
+			newIndex = 0
+		elif newIndex < 0:
+			newIndex = len(self.subEffects)-1
+		getattr(self, 'init'+self.subEffects[newIndex])(self.device)
+
+	def setoption1(self, direction:int):
+		currentIndex = self.subEffectSwitchTimes.index(self.selectedSwitchTime)
+		newIndex = currentIndex + direction
+		if newIndex > len(self.subEffectSwitchTimes)-1:
+			newIndex = 0
+		elif newIndex < 0:
+			newIndex = len(self.subEffectSwitchTimes)-1
+		self.subEffectSwitch = time.monotonic()
+		self.selectedSwitchTime = self.subEffectSwitchTimes[newIndex]
+
+	def optionlabel1(self):
+		return str(math.floor(self.selectedSwitchTime))
 
 	def play(self):
-
+		if (self.selectedSwitchTime and self.device.limitStep(self.selectedSwitchTime, self.subEffectSwitch)):
+			self.cycleSubEffect(1)
+			self.device.gc(1)
+			self.subEffectSwitch = time.monotonic()
+		if self.device.menu_group.hidden and sum(locals()['keys']):
+			if locals()['keys'][0]:
+				if (self.device.limitStep(.15, self.device.lastButtonTick)):
+					self.cycleSubEffect(1)
+					self.subEffectSwitch = time.monotonic()
+					self.device.lastButtonTick = time.monotonic()
+		# -----------------------------------------------------------------------------------------
+		# -----------------------------------------------------------------------------------------
 		if self.subEffect == 'Lines':
 			if (self.device.limitStep(.2, self.lastLineCheck)):
 				if len(self.polygroup) < self.maxlines:
@@ -309,19 +342,4 @@ class ITYSL:
 						self.device.gc()
 						self.lastLineCheck = time.monotonic()
 					else:
-						self.initSpiral(device=self.device, palette=self.nextPalette)
-		# -----------------------------------------------------------------------------------------
-		# -----------------------------------------------------------------------------------------
-		if self.device.menu_group.hidden and sum(locals()['keys']):
-			if locals()['keys'][0]:
-				if (self.device.limitStep(.15, self.device.lastButtonTick)):
-					self.initSpiral(self.device, random.choice([0,1]))
-					self.device.lastButtonTick = time.monotonic()
-			if locals()['keys'][1]:
-				if (self.device.limitStep(.15, self.device.lastButtonTick)):
-					self.initLines(self.device)
-					self.device.lastButtonTick = time.monotonic()
-			if locals()['keys'][2]:
-				if (self.device.limitStep(.15, self.device.lastButtonTick)):
-					self.initCircles(self.device)
-					self.device.lastButtonTick = time.monotonic()
+						self.initSpiral(device=self.device)
