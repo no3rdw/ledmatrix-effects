@@ -7,7 +7,7 @@ class Menu:
 		self.name = 'Menu'
 		self.menu = []
 		self.effectmenu = []
-		self.carat = 0
+		self.caret = 0
 		self.device = device
 
 		self.menucolor = device.hls(.18, .5, 1)
@@ -17,7 +17,7 @@ class Menu:
 		self.lastOptionLabelRefresh = 0
 
 		#longtext = adafruit_display_text.wrap_text_to_pixels("MENU TEST",device.matrix.width,device.font)
-		#longtext = "\n".join(longtext)
+		#longtext = "\n".join(longtext) 
 
 		self.menu.append(adafruit_display_text.label.Label(
 			device.font, color=self.selectedcolor, background_color=0x000000, text='Effect', line_spacing=1,
@@ -61,40 +61,40 @@ class Menu:
 		self.device.resetKeypixel(2)
 		self.device.resetKeypixel(3)
 
-	def highlightCarat(self):
+	def highlightCaret(self):
 		i=0
 		while i < len(self.menu):
-			self.menu[i].color = self.menucolor if self.carat != i else self.selectedcolor
+			self.menu[i].color = self.menucolor if self.caret != i else self.selectedcolor
 			i += 1
 
 	def refreshOptionLabel(self):
-		if self.carat == 0:
+		if self.caret == 0:
 			self.optionlabel.text = self.device.effect.name
-		elif self.carat == 1 and hasattr(self.device.effect, 'optionlabel1'):
+		elif self.caret == 1 and hasattr(self.device.effect, 'optionlabel1'):
 			self.optionlabel.text = self.device.effect.optionlabel1()
-		elif self.carat == 2 and hasattr(self.device.effect, 'optionlabel2'):
+		elif self.caret == 2 and hasattr(self.device.effect, 'optionlabel2'):
 			self.optionlabel.text = self.device.effect.optionlabel2()
-		elif self.carat == 3 and hasattr(self.device.effect, 'optionlabel3'):
+		elif self.caret == 3 and hasattr(self.device.effect, 'optionlabel3'):
 			self.optionlabel.text = self.device.effect.optionlabel3()
 
 	def changeOption(self, direction:int):
-		if self.carat == 0:
+		if self.caret == 0:
 			self.device.cycleEffect(direction)
-		elif self.carat == 1 and hasattr(self.device.effect, 'setoption1'):
+		elif self.caret == 1 and hasattr(self.device.effect, 'setoption1'):
 			self.device.effect.setoption1(direction)
-		elif self.carat == 2 and hasattr(self.device.effect, 'setoption2'):
+		elif self.caret == 2 and hasattr(self.device.effect, 'setoption2'):
 			self.device.effect.setoption2(direction)
-		elif self.carat == 3 and hasattr(self.device.effect, 'setoption3'):
+		elif self.caret == 3 and hasattr(self.device.effect, 'setoption3'):
 			self.device.effect.setoption3(direction)
 
-	def moveCarat(self, direction:int):
+	def moveCaret(self, direction:int):
 		if direction > 0:
 			# moving down
-			self.carat = self.carat + 1 if self.carat < len(self.effectmenu) else 0
+			self.caret = self.caret + 1 if self.caret < len(self.effectmenu) else 0
 		else:
 			#moving up
-			self.carat = self.carat - 1 if self.carat > 0 else len(self.effectmenu)
-		self.highlightCarat()
+			self.caret = self.caret - 1 if self.caret > 0 else len(self.effectmenu)
+		self.highlightCaret()
 		self.refreshOptionLabel()
 
 	def getEffectMenu(self):
@@ -116,10 +116,10 @@ class Menu:
 					self.device.setLastButtonTick()
 					self.hideMenu()
 					#self.device.neokey.pixels[3] = (255, 200, 40)
-					#if self.carat == 0:
+					#if self.caret == 0:
 					#	self.hideMenu()
 					#else:
-					#	self.moveCarat(-1)
+					#	self.moveCaret(-1)
 			else:
 				self.device.resetKeypixel(3)
 
@@ -127,7 +127,7 @@ class Menu:
 				if (self.device.limitStep(.15, self.device.lastButtonTick)):
 					self.device.setLastButtonTick()
 					self.device.neokey.pixels[2] = (255, 200, 40)
-					self.moveCarat(1)
+					self.moveCaret(1)
 			else:
 				self.device.resetKeypixel(2)
 
