@@ -7,7 +7,7 @@ from menu import Menu
 from itysl import ITYSL
 import random
 
-##### App variables test 
+##### App variables 
 effects = ['ITYSL','Static','Clock']
 
 # https://learn.adafruit.com/circuitpython-display-support-using-displayio/library-overview
