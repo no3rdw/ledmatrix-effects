@@ -89,7 +89,7 @@ class Static:
 			self.bitmap[randpixel] = random.randrange(0,self.colorcount)
 		
 		if self.device.menu_group.hidden and sum(locals()['keys']):
-			if locals()['keys'][0]:
+			if locals()['keys'][3]:
 				if (self.device.limitStep(.15, self.device.lastButtonTick)):
 					self.bitmap.fill(0)
 			

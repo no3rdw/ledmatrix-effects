@@ -145,7 +145,7 @@ class ITYSL1:
 					self.__init__(device=self.device, palette=self.nextPalette)
 
 		if self.device.menu_group.hidden and sum(locals()['keys']):
-			if locals()['keys'][0]:
+			if locals()['keys'][3]:
 				if (self.device.limitStep(.3, self.device.lastButtonTick)):
 					self.__init__(device=self.device, palette=self.nextPalette)
 					self.device.lastButtonTick = time.monotonic()

@@ -264,7 +264,7 @@ class ITYSL:
 			self.device.gc(1)
 			self.subEffectSwitch = time.monotonic()
 		if self.device.menu_group.hidden and sum(locals()['keys']):
-			if locals()['keys'][0]:
+			if locals()['keys'][3]:
 				if (self.device.limitStep(.15, self.device.lastButtonTick)):
 					self.cycleSubEffect(1)
 					self.subEffectSwitch = time.monotonic()

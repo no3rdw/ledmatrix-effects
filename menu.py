@@ -51,7 +51,9 @@ class Menu:
 		
 	def showMenu(self):
 		# call showMenu AFTER initial effect is loaded
+		self.moveCaret(0, 0)
 		self.refreshOptionLabel()
+		
 		self.device.menu_group.hidden = 0 # show menu
 
 	def hideMenu(self):
@@ -87,13 +89,15 @@ class Menu:
 		elif self.caret == 3 and hasattr(self.device.effect, 'setoption3'):
 			self.device.effect.setoption3(direction)
 
-	def moveCaret(self, direction:int):
-		if direction > 0:
+	def moveCaret(self, direction:int, n:int=None):
+		if direction == 1:
 			# moving down
 			self.caret = self.caret + 1 if self.caret < len(self.effectmenu) else 0
-		else:
+		elif direction == -1:
 			#moving up
 			self.caret = self.caret - 1 if self.caret > 0 else len(self.effectmenu)
+		elif direction == 0 and n != None:
+			self.caret = n
 		self.highlightCaret()
 		self.refreshOptionLabel()
 
@@ -111,41 +115,36 @@ class Menu:
 
 	def play(self):	
 		if sum(locals()['keys']): # only enter this loop if a button is down
-			if locals()['keys'][3]:
+			if locals()['keys'][0]:
 				if (self.device.limitStep(.15, self.device.lastButtonTick)):
 					self.device.setLastButtonTick()
 					self.hideMenu()
-					#self.device.neokey.pixels[3] = (255, 200, 40)
-					#if self.caret == 0:
-					#	self.hideMenu()
-					#else:
-					#	self.moveCaret(-1)
 			else:
-				self.device.resetKeypixel(3)
-
-			if locals()['keys'][2]:
-				if (self.device.limitStep(.15, self.device.lastButtonTick)):
-					self.device.setLastButtonTick()
-					self.device.neokey.pixels[2] = (255, 200, 40)
-					self.moveCaret(1)
-			else:
-				self.device.resetKeypixel(2)
+				self.device.resetKeypixel(0)
 
 			if locals()['keys'][1]:
 				if (self.device.limitStep(.15, self.device.lastButtonTick)):
 					self.device.setLastButtonTick()
 					self.device.neokey.pixels[1] = (255, 200, 40)
-					self.changeOption(-1)
+					self.moveCaret(1)
 			else:
 				self.device.resetKeypixel(1)
 
-			if locals()['keys'][0]:
+			if locals()['keys'][2]:
 				if (self.device.limitStep(.15, self.device.lastButtonTick)):
 					self.device.setLastButtonTick()
-					self.device.neokey.pixels[0] = (255, 200, 40)
+					self.device.neokey.pixels[2] = (255, 200, 40)
+					self.changeOption(-1)
+			else:
+				self.device.resetKeypixel(2)
+
+			if locals()['keys'][3]:
+				if (self.device.limitStep(.15, self.device.lastButtonTick)):
+					self.device.setLastButtonTick()
+					self.device.neokey.pixels[3] = (255, 200, 40)
 					self.changeOption(1)
 			else:
-				self.device.resetKeypixel(0)
+				self.device.resetKeypixel(3)
 
 		if (self.device.limitStep(.15, self.lastOptionLabelRefresh)):
 			self.lastOptionLabelRefresh = time.monotonic()

@@ -21,7 +21,10 @@ while True:
 	keys = device.neokey.get_keys() # using this is MUCH faster than referencing device.neokey[x] over and over 
 	if device.menu_group.hidden and sum(keys): # only enter this loop if a button is down
 		if keys[0]:
-			device.neokey.pixels[0] = (255, 200, 40)
+			if (device.limitStep(.15, device.lastButtonTick)):
+					device.setLastButtonTick()
+					device.neokey.pixels[0] = (255, 200, 40)
+					menu.showMenu()
 		else:
 			device.resetKeypixel(0)
 		if keys[1]:
@@ -33,10 +36,7 @@ while True:
 		else:
 			device.resetKeypixel(2)
 		if keys[3]:
-			if (device.limitStep(.15, device.lastButtonTick)):
-					device.setLastButtonTick()
-					device.neokey.pixels[3] = (255, 200, 40)
-					menu.showMenu()
+			device.neokey.pixels[3] = (255, 200, 40)
 		else:
 			device.resetKeypixel(3)
 

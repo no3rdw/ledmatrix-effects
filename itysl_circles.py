@@ -76,10 +76,10 @@ class ITYSL2:
 				i = i + 1
 
 		if self.freeze == 1:
-			if not locals()['keys'][0]:
+			if not locals()['keys'][3]:
 				self.freeze = 0
 
 		if self.device.menu_group.hidden and sum(locals()['keys']):
-			if locals()['keys'][0]:
+			if locals()['keys'][3]:
 				self.freeze = 1
 				
