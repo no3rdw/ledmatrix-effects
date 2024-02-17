@@ -7,6 +7,7 @@ class Static:
 
 		self.speed = .05
 		self.maxchanged = maxchanged
+		self.maxChangedOptions = [0,1,10,50,100,150,200,250,300]
 		self.selectedPalette = palette
 
 		# Create color palettes
@@ -73,8 +74,13 @@ class Static:
 		self.__init__(device=self.device, palette=a, maxchanged=self.maxchanged)
 
 	def setoption2(self, direction:int):
-		self.maxchanged = self.maxchanged + (direction*10) if self.maxchanged <= 300 else (direction*10)
-		if self.maxchanged < 0: self.maxchanged = 300
+		currentIndex = self.maxChangedOptions.index(self.maxchanged)
+		newIndex = currentIndex + direction
+		if newIndex > len(self.maxChangedOptions)-1:
+			newIndex = 0
+		elif newIndex < 0:
+			newIndex = len(self.maxChangedOptions)-1
+		self.maxchanged = self.maxChangedOptions[newIndex]
 
 	def optionlabel1(self):
 		return self.paletteNames[self.selectedPalette]

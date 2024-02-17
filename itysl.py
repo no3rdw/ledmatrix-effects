@@ -4,12 +4,12 @@ class ITYSL:
 	def __init__(self, device:Device):
 		self.name = 'ITYSL'
 		self.device = device
-		self.menu = ['Time']
+		self.menu = ['Speed']
 		self.subEffects = ['Lines', 'Spiral', 'Circles']
 
 		self.subEffectSwitch = time.monotonic()
-		self.selectedSwitchTime = 5.4 # seconds
-		self.subEffectSwitchTimes = [0,5.4,10.8,30,60]
+		self.selectedSwitchTime = 5 # seconds
+		self.subEffectSwitchTimes = [0,5,10,30,60]
 
 		self.subEffect = self.subEffects[random.randrange(0, len(self.subEffects))]
 		self.cycleSubEffect(0)
@@ -256,13 +256,23 @@ class ITYSL:
 		self.selectedSwitchTime = self.subEffectSwitchTimes[newIndex]
 
 	def optionlabel1(self):
-		return str(math.floor(self.selectedSwitchTime))
+		if self.selectedSwitchTime == 0:
+			return 'Manual'
+		else:
+			return str(self.selectedSwitchTime) + 's'
 
 	def play(self):
 		if (self.selectedSwitchTime and self.device.limitStep(self.selectedSwitchTime, self.subEffectSwitch)):
-			self.cycleSubEffect(1)
-			self.device.gc(1)
-			self.subEffectSwitch = time.monotonic()
+			# For spiral, we only advance to the next subeffect if the spiral animation completes
+			if self.subEffect == 'Spiral' and self.done == True and len(self.polygroup) == 0:
+				self.cycleSubEffect(1)
+				self.device.gc(1)
+				self.subEffectSwitch = time.monotonic()
+			# for the other effects, we can advance immediately
+			elif self.subEffect != 'Spiral':
+				self.cycleSubEffect(1)
+				self.device.gc(1)
+				self.subEffectSwitch = time.monotonic()
 		if self.device.menu_group.hidden and sum(locals()['keys']):
 			if locals()['keys'][3]:
 				if (self.device.limitStep(.15, self.device.lastButtonTick)):
