@@ -13,8 +13,8 @@ effects = ['ITYSL','Static','Clock']
 # https://learn.adafruit.com/circuitpython-display-support-using-displayio/library-overview
 
 menu = Menu(device)
-device.changeEffectByIndex(0)
-#device.changeEffectByIndex(random.randrange(0,len(effects)))
+device.changeEffect(effects[0])
+
 device.gc()
 
 while True:

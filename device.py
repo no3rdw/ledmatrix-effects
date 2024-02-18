@@ -47,21 +47,23 @@ class Device:
 		self.font.load_glyphs('1234567890QWERTYUIOPLKJHGFDSAZXCVBNMmnbvcxzasdfghjklpoiuytrewq&')
 		self.lastButtonTick = 0
 
-
 	def init_button(self, pin:int):
 		button = DigitalInOut(pin)
 		button.switch_to_input()
 		button.pull = Pull.DOWN
 		return button
 	
-	def cycleEffect(self, direction:int):
-		currentIndex = locals()['effects'].index(self.effect.name)
+	def cycleOption(self, optionList, selectedOption, direction):
+		currentIndex = optionList.index(selectedOption)
 		newIndex = currentIndex + direction
-		if newIndex > len(locals()['effects'])-1:
+		if newIndex > len(optionList)-1:
 			newIndex = 0
 		elif newIndex < 0:
-			newIndex = len(locals()['effects'])-1
-		self.changeEffectByIndex(newIndex)
+			newIndex = len(optionList)-1
+		return optionList[newIndex]
+	
+	def cycleEffect(self, direction:int):
+		self.changeEffect(self.cycleOption(locals()['effects'], self.effect.name, direction))
 
 	def changeEffect(self, e:str):
 		if not hasattr(self.effect, 'name') or e != self.effect.name:
@@ -70,9 +72,6 @@ class Device:
 			locals()['menu'].refreshOptionLabel()
 			self.gc(1)
 
-	def changeEffectByIndex(self, e:int):
-		self.changeEffect(locals()['effects'][e])
-	
 	def resetKeypixel(self, n:int):
 		self.neokey.pixels[n] = 0
 

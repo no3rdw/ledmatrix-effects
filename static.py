@@ -74,13 +74,7 @@ class Static:
 		self.__init__(device=self.device, palette=a, maxchanged=self.maxchanged)
 
 	def setoption2(self, direction:int):
-		currentIndex = self.maxChangedOptions.index(self.maxchanged)
-		newIndex = currentIndex + direction
-		if newIndex > len(self.maxChangedOptions)-1:
-			newIndex = 0
-		elif newIndex < 0:
-			newIndex = len(self.maxChangedOptions)-1
-		self.maxchanged = self.maxChangedOptions[newIndex]
+		self.maxchanged = self.device.cycleOption(self.maxChangedOptions, self.maxchanged, direction)
 
 	def optionlabel1(self):
 		return self.paletteNames[self.selectedPalette]

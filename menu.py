@@ -91,10 +91,8 @@ class Menu:
 
 	def moveCaret(self, direction:int, n:int=None):
 		if direction == 1:
-			# moving down
 			self.caret = self.caret + 1 if self.caret < len(self.effectmenu) else 0
 		elif direction == -1:
-			#moving up
 			self.caret = self.caret - 1 if self.caret > 0 else len(self.effectmenu)
 		elif direction == 0 and n != None:
 			self.caret = n

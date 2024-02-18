@@ -246,14 +246,8 @@ class ITYSL:
 		getattr(self, 'init'+self.subEffects[newIndex])(self.device)
 
 	def setoption1(self, direction:int):
-		currentIndex = self.subEffectSwitchTimes.index(self.selectedSwitchTime)
-		newIndex = currentIndex + direction
-		if newIndex > len(self.subEffectSwitchTimes)-1:
-			newIndex = 0
-		elif newIndex < 0:
-			newIndex = len(self.subEffectSwitchTimes)-1
+		self.selectedSwitchTime = self.device.cycleOption(self.subEffectSwitchTimes, self.selectedSwitchTime, direction)
 		self.subEffectSwitch = time.monotonic()
-		self.selectedSwitchTime = self.subEffectSwitchTimes[newIndex]
 
 	def optionlabel1(self):
 		if self.selectedSwitchTime == 0:
