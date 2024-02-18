@@ -59,10 +59,6 @@ class Menu:
 
 	def hideMenu(self):
 		self.device.menu_group.hidden = 1
-		self.device.resetKeypixel(0)
-		self.device.resetKeypixel(1)
-		self.device.resetKeypixel(2)
-		self.device.resetKeypixel(3)
 
 	def refreshMenu(self):
 		i=0
@@ -105,38 +101,24 @@ class Menu:
 		self.menu['labels'][3].text = ''
 
 	def play(self):	
-		if sum(locals()['keys']): # only enter this loop if a button is down
+		if sum(locals()['keys']) and self.device.limitStep(self.device.buttonPause, self.device.lastButtonTick): 
+			# only enter this loop if a button is down and it hasn't been too soon since last press
 			if locals()['keys'][0]:
-				if (self.device.limitStep(.15, self.device.lastButtonTick)):
-					self.device.setLastButtonTick()
-					self.hideMenu()
-			else:
-				self.device.resetKeypixel(0)
+				self.device.setLastButtonTick()
+				self.hideMenu()
 
 			if locals()['keys'][1]:
-				if (self.device.limitStep(.15, self.device.lastButtonTick)):
-					self.device.setLastButtonTick()
-					self.device.neokey.pixels[1] = (255, 200, 40)
-					self.moveCaret(1)
-			else:
-				self.device.resetKeypixel(1)
+				self.device.setLastButtonTick()
+				self.moveCaret(1)
 
 			if locals()['keys'][2]:
-				if (self.device.limitStep(.15, self.device.lastButtonTick)):
-					self.device.setLastButtonTick()
-					self.device.neokey.pixels[2] = (255, 200, 40)
-					self.changeOption(-1)
-			else:
-				self.device.resetKeypixel(2)
+				self.device.setLastButtonTick()
+				self.changeOption(-1)
 
 			if locals()['keys'][3]:
-				if (self.device.limitStep(.15, self.device.lastButtonTick)):
-					self.device.setLastButtonTick()
-					self.device.neokey.pixels[3] = (255, 200, 40)
-					self.changeOption(1)
-			else:
-				self.device.resetKeypixel(3)
-
-		if (not self.device.menu_group.hidden and self.device.limitStep(.15, self.lastMenuRefresh)):
-			self.lastMenuRefresh = time.monotonic()
-			self.refreshMenu()
+				self.device.setLastButtonTick()
+				self.changeOption(1)
+		else:
+			if (self.device.limitStep(self.device.buttonPause, self.lastMenuRefresh)):
+				self.lastMenuRefresh = time.monotonic()
+				self.refreshMenu()

@@ -19,9 +19,8 @@ class Device:
 		##### NeoKey Setup
 		self.i2c = board.I2C()
 		# Create a NeoKey object
-		self.neokey = NeoKey1x4(self.i2c) # address found with I2C Scanner py script
-		self.neokey.pixels.brightness = .2 # neopixels on KEYS
-		#self.keystatus = None # replaced by device.neokey.get_keys() every tick
+		self.neokey = NeoKey1x4(self.i2c)
+		self.neokey.pixels.brightness = 0
 
 		self.rtc = pcf8523.PCF8523(self.i2c)
 
@@ -46,12 +45,7 @@ class Device:
 		self.font = bitmap_font.load_font("lib/fonts/04B_03__6pt.bdf")
 		self.font.load_glyphs('1234567890QWERTYUIOPLKJHGFDSAZXCVBNMmnbvcxzasdfghjklpoiuytrewq&')
 		self.lastButtonTick = 0
-
-	def init_button(self, pin:int):
-		button = DigitalInOut(pin)
-		button.switch_to_input()
-		button.pull = Pull.DOWN
-		return button
+		self.buttonPause = .15
 	
 	def cycleOption(self, optionList, selectedOption, direction):
 		currentIndex = optionList.index(selectedOption)
