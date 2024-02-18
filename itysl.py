@@ -4,7 +4,13 @@ class ITYSL:
 	def __init__(self, device:Device):
 		self.name = 'ITYSL'
 		self.device = device
-		self.menu = ['Speed']
+		self.menu = [
+			{
+				'label': 'Speed',
+				'set': self.setSpeed,
+				'get': self.getSpeed
+			}
+		]
 		self.subEffects = ['Lines', 'Spiral', 'Circles']
 
 		self.subEffectSwitch = time.monotonic()
@@ -245,11 +251,11 @@ class ITYSL:
 			newIndex = len(self.subEffects)-1
 		getattr(self, 'init'+self.subEffects[newIndex])(self.device)
 
-	def setoption1(self, direction:int):
+	def setSpeed(self, direction:int):
 		self.selectedSwitchTime = self.device.cycleOption(self.subEffectSwitchTimes, self.selectedSwitchTime, direction)
 		self.subEffectSwitch = time.monotonic()
 
-	def optionlabel1(self):
+	def getSpeed(self):
 		if self.selectedSwitchTime == 0:
 			return 'Manual'
 		else:

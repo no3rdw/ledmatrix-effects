@@ -60,26 +60,37 @@ class Static:
 		self.i = 1
 		self.x = 1
 
-		self.menu = ['Color', 'Speed']
+		self.menu = [
+			{
+				'label': 'Color',
+				'set': self.setPalette,
+				'get': self.getPalette
+			},
+			{
+				'label': 'Speed',
+				'set': self.setSpeed,
+				'get': self.getSpeed
+			}
+		]
 
 		for x in range(0, device.display.width):
 			for y in range(0, device.display.height):
 				self.bitmap[x, y] = random.randrange(0,self.colorcount)
 
-	def setoption1(self, direction:int):
+	def setPalette(self, direction:int):
 		a = self.selectedPalette + direction if self.selectedPalette + direction < len(self.palettes) else 0
 		if a < 0: a = len(self.palettes)-1
 		print(a)
 
 		self.__init__(device=self.device, palette=a, maxchanged=self.maxchanged)
 
-	def setoption2(self, direction:int):
+	def setSpeed(self, direction:int):
 		self.maxchanged = self.device.cycleOption(self.maxChangedOptions, self.maxchanged, direction)
 
-	def optionlabel1(self):
+	def getPalette(self):
 		return self.paletteNames[self.selectedPalette]
 
-	def optionlabel2(self):
+	def getSpeed(self):
 		return str(self.maxchanged)
 
 	def play(self):

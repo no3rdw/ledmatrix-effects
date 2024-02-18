@@ -69,8 +69,10 @@ class Device:
 		if not hasattr(self.effect, 'name') or e != self.effect.name:
 			self.effect = locals()[e](self)
 			locals()['menu'].getEffectMenu()
-			locals()['menu'].refreshOptionLabel()
 			self.gc(1)
+
+	def getEffectName(self):
+		return self.effect.name
 
 	def resetKeypixel(self, n:int):
 		self.neokey.pixels[n] = 0

@@ -15,7 +15,18 @@ class Clock:
 
 		self.lastScroll = 0
 
-		self.menu = ['Set Hr', 'Set Min']
+		self.menu = [
+			{
+				'label': 'Set Hr',
+				'set': self.setHour,
+				'get': self.getHour
+			},
+			{
+				'label': 'Set Min',
+				'set': self.setMinute,
+				'get': self.getMinute
+			}
+		]
 
 	def fixHour(self:int, hour:int):
 		if hour == 0 or hour == 12:
@@ -23,17 +34,11 @@ class Clock:
 		else:
 			return hour % 12
 
-	def setoption1(self, direction:int):
-		self.addHour(direction)
-
-	def setoption2(self, direction:int):
-		self.addMinute(direction)
-
-	def optionlabel1(self):
+	def getHour(self):
 		t = self.device.rtc.datetime
 		return '%d' % self.fixHour(t.tm_hour)
 
-	def optionlabel2(self):
+	def getMinute(self):
 		t = self.device.rtc.datetime
 		return '%02d' % t.tm_min
 	
@@ -54,13 +59,13 @@ class Clock:
 			else:
 				self.clockline1.hidden = 1
 
-	def addMinute(self, direction:int):
+	def setMinute(self, direction:int):
 		t = self.device.rtc.datetime
 		newmin = 0 if t.tm_min == 59 or (direction == -1 and t.tm_min == 0) else t.tm_min + (1*direction)
 		newt = time.struct_time((2024, 1, 1, t.tm_hour, newmin, 0, 0, -1, -1))
 		self.device.rtc.datetime = newt
 
-	def addHour(self, direction:int):
+	def setHour(self, direction:int):
 		t = self.device.rtc.datetime
 		newhr = 0 if t.tm_hour == 23 or (direction == -1 and t.tm_hour == 0) else t.tm_hour + (1*direction)
 		newt = time.struct_time((2024, 1, 1, newhr, t.tm_min, t.tm_sec, 0, -1, -1))
