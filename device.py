@@ -72,7 +72,7 @@ class Device:
 			self.gc(1)
 
 	def getEffectName(self):
-		return self.effect.name
+		return self.effect.displayname
 
 	def resetKeypixel(self, n:int):
 		self.neokey.pixels[n] = 0

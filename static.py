@@ -2,7 +2,8 @@ import displayio, random
 
 class Static:
 	def __init__(self, device:Device, palette:int=0, maxchanged:int=10):
-		self.name = 'Static'
+		self.name = type(self).__name__
+		self.displayname = 'Static'
 		self.device = device
 
 		self.speed = .05

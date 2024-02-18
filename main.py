@@ -1,14 +1,13 @@
 
 from device import Device
 device = Device()
-from clock import Clock
-from static import Static
 from menu import Menu
-from itysl import ITYSL
 import random
 
-##### App variables 
-effects = ['ITYSL','Static','Clock']
+from settings import Settings
+from static import Static
+from itysl import ITYSL
+effects = ['ITYSL','Static','Settings']
 
 # https://learn.adafruit.com/circuitpython-display-support-using-displayio/library-overview
 

@@ -17,7 +17,7 @@ class Menu:
 		self.selectedcolor = device.hls(.01, .2, 1)
 		self.optioncolor = device.hls(.6, .4, 1)
 
-		self.lastOptionLabelRefresh = 0
+		self.lastMenuRefresh = 0
 
 		#longtext = adafruit_display_text.wrap_text_to_pixels("MENU TEST",device.matrix.width,device.font)
 		#longtext = "\n".join(longtext) 
@@ -137,6 +137,6 @@ class Menu:
 			else:
 				self.device.resetKeypixel(3)
 
-			if (not self.device.menu_group.hidden and self.device.limitStep(.15, self.lastOptionLabelRefresh)):
-				self.lastOptionLabelRefresh = time.monotonic()
-				self.refreshMenu()
+		if (not self.device.menu_group.hidden and self.device.limitStep(.15, self.lastMenuRefresh)):
+			self.lastMenuRefresh = time.monotonic()
+			self.refreshMenu()

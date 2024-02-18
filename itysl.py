@@ -2,7 +2,8 @@ import displayio, random, time, vectorio, math
 
 class ITYSL:
 	def __init__(self, device:Device):
-		self.name = 'ITYSL'
+		self.name = type(self).__name__
+		self.displayname = 'ITYSL'
 		self.device = device
 		self.menu = [
 			{

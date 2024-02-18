@@ -1,9 +1,10 @@
 import adafruit_display_text.label
 import time
 
-class Clock:
+class Settings:
 	def __init__(self, device:Device):
-		self.name = 'Clock'
+		self.name = type(self).__name__
+		self.displayname = 'Clock'
 		self.device = locals()['device']
 
 		self.clockline1 = adafruit_display_text.label.Label(
