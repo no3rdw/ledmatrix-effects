@@ -1,16 +1,17 @@
 import adafruit_display_text.label
 import time
+import displayio
 
 class Settings:
 	def __init__(self, device:Device):
 		self.name = type(self).__name__
-		self.displayname = 'Clock'
+		self.displayname = 'Settings'
 		self.device = locals()['device']
 
 		self.clockline1 = adafruit_display_text.label.Label(
-			device.font, color=0xffff00, text='', line_spacing=1,
+			device.font, color=device.hls(.18, .5, 1), text='', line_spacing=1,
 			label_direction='LTR',anchor_point=[.5,.5],anchored_position=[16,15])
-
+		
 		device.clearDisplayGroup(device.effect_group)
 		device.effect_group.append(self.clockline1)
 
@@ -26,8 +27,18 @@ class Settings:
 				'label': 'Set Min',
 				'set': self.setMinute,
 				'get': self.getMinute
+			},
+			{	'label': 'Bright',
+				'set': self.setBrightness,
+				'get': lambda: str(self.device.brightness)
 			}
 		]
+
+	def setBrightness(self, direction:int):
+		self.device.cycleBrightness(direction)
+		self.__init__(self.device)
+		locals()['menu'].setColors()
+		locals()['menu'].refreshMenu()
 
 	def fixHour(self:int, hour:int):
 		if hour == 0 or hour == 12:

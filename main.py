@@ -7,7 +7,9 @@ import random
 from settings import Settings
 from static import Static
 from itysl import ITYSL
-effects = ['ITYSL','Static','Settings']
+from sky import Sky
+
+effects = ['Sky','ITYSL','Static','Settings']
 
 # https://learn.adafruit.com/circuitpython-display-support-using-displayio/library-overview
 

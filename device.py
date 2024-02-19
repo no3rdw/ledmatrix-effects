@@ -59,6 +59,9 @@ class Device:
 	def cycleEffect(self, direction:int):
 		self.changeEffect(self.cycleOption(locals()['effects'], self.effect.name, direction))
 
+	def cycleBrightness(self, direction:int):
+		self.brightness = self.cycleOption([.2,.4,.6,.8,1], self.brightness, direction)
+
 	def changeEffect(self, e:str):
 		if not hasattr(self.effect, 'name') or e != self.effect.name:
 			self.effect = locals()[e](self)

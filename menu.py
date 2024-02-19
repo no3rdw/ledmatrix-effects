@@ -13,9 +13,7 @@ class Menu:
 		self.caret = 0
 		self.offset = 0
 		
-		self.menucolor = device.hls(.18, .5, 1)
-		self.selectedcolor = device.hls(.01, .2, 1)
-		self.optioncolor = device.hls(.6, .4, 1)
+		self.setColors()
 
 		self.lastMenuRefresh = 0
 
@@ -60,6 +58,11 @@ class Menu:
 	def hideMenu(self):
 		self.device.menu_group.hidden = 1
 
+	def setColors(self):
+		self.menucolor = self.device.hls(.18, .5, 1)
+		self.selectedcolor = self.device.hls(.01, .2, 1)
+		self.optioncolor = self.device.hls(.6, .4, 1)
+
 	def refreshMenu(self):
 		i=0
 		# refresh all displayed options
@@ -69,6 +72,7 @@ class Menu:
 			i += 1
 		# refresh the selected option label
 		self.optionlabel.text = self.menu['options'][self.caret]['get']()
+		self.optionlabel.color = self.optioncolor
 		
 	def changeOption(self, direction:int):
 		self.menu['options'][self.caret]['set'](direction)
