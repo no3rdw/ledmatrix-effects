@@ -2,6 +2,65 @@ import time, displayio, random
 import adafruit_display_text.label
 
 class Sky:
+			
+	def initPhrase(self):
+		return self.device.getTime()
+		#phrases = ["This", 'That', 'The Other Thing']
+		#return phrases[random.randrange(0,len(phrases))]
+
+	def initBlimp(self):
+		me = {}
+		me['group'] = displayio.Group()
+
+		banner = adafruit_display_text.label.Label(
+			self.device.font, color=self.device.hls(.01,0,0), 
+			text=self.initPhrase(), x=20, y=10, background_tight=True)
+		
+		blimp_f = displayio.OnDiskBitmap('images/blimp-front.bmp')
+		blimp_m = displayio.OnDiskBitmap('images/blimp-mid.bmp')
+		blimp_r = displayio.OnDiskBitmap('images/blimp-rear.bmp')
+		blimp_f.pixel_shader.make_transparent(0)
+		blimp_r.pixel_shader.make_transparent(0)
+		t = displayio.TileGrid(bitmap=blimp_f, pixel_shader=blimp_f.pixel_shader, x=0, y=0)
+		t1 = displayio.TileGrid(bitmap=blimp_m, pixel_shader=blimp_m.pixel_shader, x=28, y=0, tile_width=1, width=banner.width-6)
+		t2 = displayio.TileGrid(bitmap=blimp_r, pixel_shader=blimp_r.pixel_shader, x=t1.x+t1.width, y=0)
+		
+		me['group'].append(t)
+		me['group'].append(t1)
+		me['group'].append(t2)
+		me['group'].x = self.device.display.width
+		me['group'].y = round((self.device.display.height-24)/2)
+		me['width'] = t2.x + t2.width
+		me['group'].append(banner)
+		me['type'] = 'blimp'
+		me['delay'] = random.randrange(40,60)
+		me['done'] = False
+		print('init blimp complete')
+		self.device.gc(1)
+		return me
+
+	def initPlane(self):
+		me = {}
+		me['group'] = displayio.Group()
+
+		plane_b = displayio.OnDiskBitmap('images/plane.bmp')
+		plane_b.pixel_shader.make_transparent(7)
+		t = displayio.TileGrid(bitmap=plane_b, pixel_shader=plane_b.pixel_shader, x=0, y=round((self.device.display.height-24)/2))
+		me['group'].append(t)
+		me['group'].x = self.device.display.width
+		banner = adafruit_display_text.label.Label(
+			self.device.font, color=self.device.hls(.01,.2,1), 
+			background_color=self.device.hls(.1,1,1), 
+			text=' '+self.initPhrase()+' ', x=49, y=11)
+		me['group'].append(banner)
+		me['width'] = 49 + banner.width
+		me['type'] = 'plane'
+		me['delay'] = random.randrange(10,30)
+		me['done'] = False
+		print('init plane complete')
+		self.device.gc(1)
+		return me
+
 	def __init__(self, device:Device):
 		self.name = type(self).__name__
 		self.displayname = 'Sky'
@@ -15,22 +74,8 @@ class Sky:
 
 		device.clearDisplayGroup(device.effect_group)
 
-		self.planegroup = {}
-		self.planegroup['group'] = displayio.Group()
+		self.planegroup = self.initPlane()
 
-		plane_b = displayio.OnDiskBitmap('images/plane.bmp')
-		plane_b.pixel_shader.make_transparent(7)
-		t = displayio.TileGrid(bitmap=plane_b, pixel_shader=plane_b.pixel_shader, x=0, y=round((self.device.display.height-24)/2))
-		self.planegroup['group'].append(t)
-		self.planegroup['group'].x = self.device.display.width
-		self.planewidth = 49
-
-		self.banner = adafruit_display_text.label.Label(
-			device.font, color=device.hls(.01,.2,1), 
-			background_color=device.hls(.1,1,1), 
-			text=' Go to bed! ', x=self.planewidth, y=11)
-		self.planegroup['group'].append(self.banner)
-	
 		self.cloud_b = displayio.OnDiskBitmap('images/cloud2.bmp')
 		self.cloud_b.pixel_shader.make_transparent(2)
 		self.cloudbg = self.initCloud(1)
@@ -59,33 +104,36 @@ class Sky:
 		me = {}
 		me['scale'] = scale
 		me['group'] = displayio.Group(scale=me['scale'])
-
-		c = displayio.TileGrid(bitmap=self.cloud_b, pixel_shader=self.cloud_b.pixel_shader, x=0, y=self.setCloudY(scale))
+		me['group'].y = self.setCloudY(scale)
+		me['group'].x = random.randrange(-self.device.display.width, self.device.display.width)
+		me['delay'] = random.randrange(10,30)
+		c = displayio.TileGrid(bitmap=self.cloud_b, pixel_shader=self.cloud_b.pixel_shader, x=0, y=0)
 		me['group'].append(c)
 		return me
 	
 	def setCloudY(self, scale):
 		if scale == 1:
-			return random.randrange(0,15)
+			return random.randrange(-4,4)
 		elif scale == 2:
-			return random.randrange(-10,10)
+			return random.randrange(5,15)
 		else:
-			return random.randrange(3,10)
+			return random.randrange(15,32)
 	
 	def moveCloud(self, me):
-		me['group'].x = me['group'].x + me['scale']
-		if me['group'].x > self.device.display.width:
+		me['group'].x = me['group'].x + me['scale']	
+		if me['group'].x > self.device.display.width+(me['delay']*me['scale']):
+			# re-init params after cloud goes offscreen
 			me['group'].x = 0 - round(13 * me['scale'])
 			me['group'].y = self.setCloudY(me['scale'])
+			me['delay'] = random.randrange(10,30)
 
 	def movePlane(self, me):
-		if random.randrange(0,4) == 1:
+		if random.randrange(0,8) == 1:
+			pass
 			me['group'].y = me['group'].y + random.randrange(-1,2)
 		me['group'].x -= 1
-		print(me['group'].x)
-		if me['group'].x < -self.planewidth-self.banner.width-5:
-			me['group'].x = self.device.display.width
-			me['group'].y = round((self.device.display.height-24)/2)
+		if me['group'].x < -me['width']-me['delay']:
+			me['done'] = True
 
 	def play(self):
 		if (self.device.limitStep(.03, self.lastCloudFrame)):
@@ -98,5 +146,12 @@ class Sky:
 		if (self.device.limitStep(.1, self.lastPlaneFrame)):
 			self.movePlane(self.planegroup)
 			self.lastPlaneFrame = time.monotonic()
+
+			if self.planegroup['type'] == 'blimp' and self.planegroup['done']:
+				self.planegroup = self.initPlane()
+				self.device.effect_group[3] = self.planegroup['group']
+			elif self.planegroup['type'] == 'plane' and self.planegroup['done']:
+				self.planegroup = self.initBlimp()
+				self.device.effect_group[3] = self.planegroup['group']
 
 

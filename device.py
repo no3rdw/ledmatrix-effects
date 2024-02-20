@@ -68,6 +68,17 @@ class Device:
 			locals()['menu'].getEffectMenu()
 			self.gc(1)
 
+	def getTime(self, seconds:bool=True):
+		t = self.rtc.datetime
+		if t.tm_hour == 0 or t.tm_hour == 12:
+			hour = 12
+		else:
+			hour = t.tm_hour % 12
+			if seconds:
+				return "%d:%02d:%02d" % (hour, t.tm_min, t.tm_sec)
+			else:
+				return "%d:%02d" % (hour, t.tm_min)
+
 	def getEffectName(self):
 		return self.effect.displayname
 
