@@ -13,17 +13,17 @@ class Sky:
 		me['group'] = displayio.Group()
 
 		banner = adafruit_display_text.label.Label(
-			self.device.font, color=self.device.hls(.01,0,0), 
+			self.device.font, color=self.device.hls(0,0,0), 
 			text=self.initPhrase(), x=20, y=10, background_tight=True)
 		
 		blimp_f = displayio.OnDiskBitmap('images/blimp-front.bmp')
 		blimp_m = displayio.OnDiskBitmap('images/blimp-mid.bmp')
 		blimp_r = displayio.OnDiskBitmap('images/blimp-rear.bmp')
-		blimp_f.pixel_shader.make_transparent(0)
-		blimp_r.pixel_shader.make_transparent(0)
-		t = displayio.TileGrid(bitmap=blimp_f, pixel_shader=blimp_f.pixel_shader, x=0, y=0)
-		t1 = displayio.TileGrid(bitmap=blimp_m, pixel_shader=blimp_m.pixel_shader, x=28, y=0, tile_width=1, width=banner.width-6)
-		t2 = displayio.TileGrid(bitmap=blimp_r, pixel_shader=blimp_r.pixel_shader, x=t1.x+t1.width, y=0)
+		alphashader = self.device.alphaPalette(blimp_f.pixel_shader)
+		alphashader.make_transparent(0)
+		t = displayio.TileGrid(bitmap=blimp_f, pixel_shader=alphashader, x=0, y=0)
+		t1 = displayio.TileGrid(bitmap=blimp_m, pixel_shader=alphashader, x=28, y=0, tile_width=1, width=banner.width-6)
+		t2 = displayio.TileGrid(bitmap=blimp_r, pixel_shader=alphashader, x=t1.x+t1.width, y=0)
 		
 		me['group'].append(t)
 		me['group'].append(t1)
@@ -45,7 +45,10 @@ class Sky:
 
 		plane_b = displayio.OnDiskBitmap('images/plane.bmp')
 		plane_b.pixel_shader.make_transparent(7)
-		t = displayio.TileGrid(bitmap=plane_b, pixel_shader=plane_b.pixel_shader, x=0, y=round((self.device.display.height-24)/2))
+		
+		t = displayio.TileGrid(bitmap=plane_b, 
+						pixel_shader=self.device.alphaPalette(plane_b.pixel_shader),
+						x=0, y=round((self.device.display.height-24)/2))
 		me['group'].append(t)
 		me['group'].x = self.device.display.width
 		banner = adafruit_display_text.label.Label(
@@ -77,7 +80,8 @@ class Sky:
 		self.planegroup = self.initPlane()
 
 		self.cloud_b = displayio.OnDiskBitmap('images/cloud2.bmp')
-		self.cloud_b.pixel_shader.make_transparent(2)
+		self.cloudshader = self.device.alphaPalette(self.cloud_b.pixel_shader, True)
+		self.cloudshader.make_transparent(2)
 		self.cloudbg = self.initCloud(1)
 		self.cloudnbg = self.initCloud(2)
 		self.cloudfg = self.initCloud(3)
@@ -107,7 +111,9 @@ class Sky:
 		me['group'].y = self.setCloudY(scale)
 		me['group'].x = random.randrange(-self.device.display.width, self.device.display.width)
 		me['delay'] = random.randrange(10,30)
-		c = displayio.TileGrid(bitmap=self.cloud_b, pixel_shader=self.cloud_b.pixel_shader, x=0, y=0)
+		c = displayio.TileGrid(bitmap=self.cloud_b,
+						 pixel_shader=self.cloudshader,
+						 x=0, y=0)
 		me['group'].append(c)
 		return me
 	

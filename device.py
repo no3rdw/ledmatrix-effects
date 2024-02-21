@@ -33,7 +33,9 @@ class Device:
 			
 		self.display = framebufferio.FramebufferDisplay(self.matrix, auto_refresh=True)
 		self.display.root_group = displayio.Group()
-		# FramebufferDisplay.brightness is non-functional with this RGBMatrix (?), so we will implement our own brightness setting by modifying the level of all the HSL values
+		# FramebufferDisplay.brightness is non-functional with RGBMatrix 
+		# so we will implement our own brightness setting by modifying the level of all the HSL values
+		# and for imported .bmps, pass them through alphaPalette to modify all indexed colors
 		self.brightness = 1
 
 		self.effect_group = displayio.Group()
@@ -43,7 +45,7 @@ class Device:
 		self.display.root_group.append(self.menu_group)
 
 		self.font = bitmap_font.load_font("lib/fonts/04B_03__6pt.bdf")
-		self.font.load_glyphs('1234567890QWERTYUIOPLKJHGFDSAZXCVBNMmnbvcxzasdfghjklpoiuytrewq&')
+		self.font.load_glyphs('1234567890QWERTYUIOPLKJHGFDSAZXCVBNMmnbvcxzasdfghjklpoiuytrewq&:')
 		self.lastButtonTick = 0
 		self.buttonPause = .15
 	
@@ -104,8 +106,46 @@ class Device:
 		if output: print(str(gc.mem_free()))
 
 	def hls(self, h:float, l:float, s:float):
+		if h == 0: h = .0001
+		elif h > 1: h = 1
+		if l == 0: l = .0001
+		elif l > 1: l = 1
+		if s == 0: s = .0001
+		elif s > 1: s = 1
 		return colorsys.hls_to_rgb(h,self.brightness*l, s)
 	
+	def int_to_hls(self, color:int):
+		# from https://gist.github.com/mathebox/e0805f72e7db3269ec22
+		r = (color >> 16) & 0xFF
+		g = (color >> 8) & 0xFF
+		b = color & 0xFF
+		high = max(r, g, b)
+		low = min(r, g, b)
+		h, s, l = ((high + low) / 2,)*3
+		if high == low:
+			h = 0.0
+			s = 0.0
+		else:
+			d = high - low
+			s = d / (2 - high - low) if l > 0.5 else d / (high + low)
+			h = {
+				r: (g - b) / d + (6 if g < b else 0),
+				g: (b - r) / d + 2,
+				b: (r - g) / d + 4,
+			}[high]
+			h /= 6
+		l = l / 255
+		s = abs(s)
+		return h, l, s
+	
+	def alphaPalette(self, p:Palette, pr:bool=False):
+		i=0
+		while i < len(p):
+			h,l,s = self.int_to_hls(p[i])
+			p[i] = self.hls(h,l,s)
+			i += 1
+		return p
+
 	# https://easings.net/
 	'''def easeInOutSine(self, x:int):
 		return -(math.cos(math.pi * x) - 1) / 2
