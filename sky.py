@@ -53,7 +53,7 @@ class Sky:
 		me['group'].x = self.device.display.width
 		banner = adafruit_display_text.label.Label(
 			self.device.font, color=self.device.hls(.01,.2,1), 
-			background_color=self.device.hls(.1,1,1), 
+			background_color=self.device.hls(0,1,0), 
 			text=' '+self.initPhrase()+' ', x=49, y=11)
 		me['group'].append(banner)
 		me['width'] = 49 + banner.width

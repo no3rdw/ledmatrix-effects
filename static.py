@@ -25,12 +25,12 @@ class Static:
 		self.palettes.append(p)
 
 		p = displayio.Palette(6)
-		p[0] = device.hls(0, .05, .01)
-		p[1] = device.hls(0, .15, .01)
-		p[2] = device.hls(0, .25, .01)
-		p[3] = device.hls(0, .3, .01)
-		p[4] = device.hls(0, .5, .01)
-		p[4] = device.hls(0, 1, .01)
+		p[0] = device.hls(0, .05, 0)
+		p[1] = device.hls(0, .15, 0)
+		p[2] = device.hls(0, .25, 0)
+		p[3] = device.hls(0, .3, 0)
+		p[4] = device.hls(0, .5, 0)
+		p[5] = device.hls(0, 1, 0)
 		self.palettes.append(p)
 
 		p = displayio.Palette(10)

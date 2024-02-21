@@ -40,7 +40,6 @@ class Device:
 
 		self.effect_group = displayio.Group()
 		self.display.root_group.append(self.effect_group)
-
 		self.menu_group = displayio.Group()
 		self.display.root_group.append(self.menu_group)
 
