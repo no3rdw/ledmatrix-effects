@@ -1,15 +1,15 @@
-
 from device import Device
 device = Device()
 from menu import Menu
-import random
 
-from settings import Settings
-from static import Static
-from itysl import ITYSL
-from sky import Sky
-
-effects = ['Sky','ITYSL','Static','Settings']
+if device.writeMode == True:
+	from settings import Settings
+	effects = ['Settings']
+else:	
+	from static import Static
+	from itysl import ITYSL
+	from sky import Sky
+	effects = ['Sky','ITYSL','Static']
 
 # https://learn.adafruit.com/circuitpython-display-support-using-displayio/library-overview
 
@@ -17,7 +17,6 @@ menu = Menu(device)
 device.changeEffect(effects[0])
 
 device.gc()
-
 
 while True:
 	keys = device.neokey.get_keys() # using this is MUCH faster than referencing device.neokey[x] over and over 

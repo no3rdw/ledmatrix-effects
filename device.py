@@ -8,6 +8,7 @@ import framebufferio
 import gc
 import displayio
 import colorsys
+import storage
 from adafruit_bitmap_font import bitmap_font
 
 class Device:
@@ -24,6 +25,11 @@ class Device:
 
 		self.rtc = pcf8523.PCF8523(self.i2c)
 
+		self.writeMode = not storage.getmount("/").readonly
+		f = open('data.txt','r') #'a' is appending, 'w' is truncate write
+		self.brightness = float(f.read())
+		f.close()
+
 		##### LED Matrix setup		
 		self.matrix = rgbmatrix.RGBMatrix(
 			width=32, height=32, bit_depth=6,
@@ -36,8 +42,7 @@ class Device:
 		# FramebufferDisplay.brightness is non-functional with RGBMatrix 
 		# so we will implement our own brightness setting by modifying the level of all the HSL values
 		# and for imported .bmps, pass them through alphaPalette to modify all indexed colors
-		self.brightness = 1
-
+		
 		self.effect_group = displayio.Group()
 		self.display.root_group.append(self.effect_group)
 		self.menu_group = displayio.Group()
@@ -62,6 +67,10 @@ class Device:
 
 	def cycleBrightness(self, direction:int):
 		self.brightness = self.cycleOption([.2,.4,.6,.8,1], self.brightness, direction)
+		if self.writeMode:
+			f = open('data.txt','w') # 'w' is truncate write
+			f.write(str(self.brightness))
+			f.close()
 
 	def changeEffect(self, e:str):
 		if not hasattr(self.effect, 'name') or e != self.effect.name:
