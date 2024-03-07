@@ -9,7 +9,8 @@ else:
 	from static import Static
 	from itysl import ITYSL
 	from sky import Sky
-	effects = ['Sky','ITYSL','Static']
+	from cards import Cards
+	effects = ['Cards', 'Sky','ITYSL','Static']
 
 # https://learn.adafruit.com/circuitpython-display-support-using-displayio/library-overview
 

@@ -84,10 +84,10 @@ class Device:
 			hour = 12
 		else:
 			hour = t.tm_hour % 12
-			if seconds:
-				return "%d:%02d:%02d" % (hour, t.tm_min, t.tm_sec)
-			else:
-				return "%d:%02d" % (hour, t.tm_min)
+		if seconds:
+			return "%d:%02d:%02d" % (hour, t.tm_min, t.tm_sec)
+		else:
+			return "%d:%02d" % (hour, t.tm_min)
 
 	def getEffectName(self):
 		return self.effect.displayname
