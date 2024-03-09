@@ -1,6 +1,5 @@
 import adafruit_display_text.label
-import time
-import displayio
+import time, json, storage
 
 class Settings:
 	def __init__(self, device:Device):
@@ -30,9 +29,22 @@ class Settings:
 			},
 			{	'label': 'Bright',
 				'set': self.setBrightness,
-				'get': lambda: str(self.device.brightness)
+				'get': lambda: str(self.device.saveData['brightness'])
+			},
+			{
+				'label': 'Startup',
+				'set': self.setStartupEffect,
+				'get': lambda: self.device.saveData['startupEffect']
+			},
+			{
+				'label': 'Save',
+				'set': self.writeData,
+				'get': lambda: '<Press>'
 			}
 		]
+
+	def setStartupEffect(self, direction:int):
+		self.device.saveData['startupEffect'] = self.device.cycleOption(locals()['effects'], self.device.saveData['startupEffect'], direction)
 
 	def setBrightness(self, direction:int):
 		self.device.cycleBrightness(direction)
@@ -82,3 +94,9 @@ class Settings:
 		newhr = 0 if t.tm_hour == 23 or (direction == -1 and t.tm_hour == 0) else t.tm_hour + (1*direction)
 		newt = time.struct_time((2024, 1, 1, newhr, t.tm_min, t.tm_sec, 0, -1, -1))
 		self.device.rtc.datetime = newt
+
+	def writeData(self, direction:int):
+		if self.device.writeMode == True:
+			f = open('data.json','w') # 'w' is truncate write
+			f.write(json.dumps(self.device.saveData))
+			f.close()

@@ -1,24 +1,20 @@
 from device import Device
 device = Device()
 from menu import Menu
+from static import Static
+from itysl import ITYSL
+from sky import Sky
+from cards import Cards
+effects = ['Cards','Sky','ITYSL','Static']
 
-if device.writeMode == True:
-	from settings import Settings
-	effects = ['Settings']
-else:	
-	from static import Static
-	from itysl import ITYSL
-	from sky import Sky
-	from cards import Cards
-	effects = ['Cards','Sky','ITYSL','Static']
+#if device.writeMode == True:
+from settings import Settings
+effects.append('Settings')
 
 # https://learn.adafruit.com/circuitpython-display-support-using-displayio/library-overview
 
 menu = Menu(device)
-if device.writeMode == True:
-	device.changeEffect('Settings')
-else:
-	device.changeEffect(device.saveData['selectedEffect'])
+device.changeEffect(device.saveData['startupEffect'])
 
 device.gc()
 

@@ -27,11 +27,11 @@ class Device:
 
 		try:
 			self.writeMode = not storage.getmount("/").readonly
-			f = open('data.json','r') #'a' is appending, 'w' is truncate write
+			f = open('data.json','r')
 			self.saveData = json.loads(f.read())
 			f.close()
 		except:
-			self.saveData = json.loads('{"brightness":1.0,"selectedEffect":"Cards"}') #defaults
+			self.saveData = json.loads('{"brightness":1.0,"startupEffect":"Static"}') #defaults
 
 		##### LED Matrix setup
 		self.matrix = rgbmatrix.RGBMatrix(
@@ -70,10 +70,6 @@ class Device:
 
 	def cycleBrightness(self, direction:int):
 		self.saveData['brightness'] = self.cycleOption([.2,.4,.6,.8,1], self.saveData['brightness'], direction)
-		if self.writeMode:
-			f = open('data.json','w') # 'w' is truncate write
-			f.write(json.dumps(self.saveData))
-			f.close()
 
 	def changeEffect(self, e:str):
 		if not hasattr(self.effect, 'name') or e != self.effect.name:
