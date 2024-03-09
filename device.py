@@ -1,4 +1,4 @@
-import board, time
+import board, time, json
 from digitalio import DigitalInOut, Pull
 from adafruit_neokey.neokey1x4 import NeoKey1x4
 import pcf8523
@@ -26,8 +26,9 @@ class Device:
 		self.rtc = pcf8523.PCF8523(self.i2c)
 
 		self.writeMode = not storage.getmount("/").readonly
-		f = open('data.txt','r') #'a' is appending, 'w' is truncate write
-		self.brightness = float(f.read())
+		f = open('data.json','r') #'a' is appending, 'w' is truncate write
+		self.saveData = json.loads(f.read())
+		self.brightness = float(self.saveData['brightness'])
 		f.close()
 
 		##### LED Matrix setup		
