@@ -25,13 +25,15 @@ class Device:
 
 		self.rtc = pcf8523.PCF8523(self.i2c)
 
-		self.writeMode = not storage.getmount("/").readonly
-		f = open('data.json','r') #'a' is appending, 'w' is truncate write
-		self.saveData = json.loads(f.read())
-		self.brightness = float(self.saveData['brightness'])
-		f.close()
+		try:
+			self.writeMode = not storage.getmount("/").readonly
+			f = open('data.json','r') #'a' is appending, 'w' is truncate write
+			self.saveData = json.loads(f.read())
+			f.close()
+		except:
+			self.saveData = json.loads('{"brightness":1.0,"selectedEffect":"Cards"}') #defaults
 
-		##### LED Matrix setup		
+		##### LED Matrix setup
 		self.matrix = rgbmatrix.RGBMatrix(
 			width=32, height=32, bit_depth=6,
 			rgb_pins=[board.D6, board.D5, board.D9, board.D11, board.D10, board.D12],
@@ -67,10 +69,10 @@ class Device:
 		self.changeEffect(self.cycleOption(locals()['effects'], self.effect.name, direction))
 
 	def cycleBrightness(self, direction:int):
-		self.brightness = self.cycleOption([.2,.4,.6,.8,1], self.brightness, direction)
+		self.saveData['brightness'] = self.cycleOption([.2,.4,.6,.8,1], self.saveData['brightness'], direction)
 		if self.writeMode:
-			f = open('data.txt','w') # 'w' is truncate write
-			f.write(str(self.brightness))
+			f = open('data.json','w') # 'w' is truncate write
+			f.write(json.dumps(self.saveData))
 			f.close()
 
 	def changeEffect(self, e:str):
@@ -121,7 +123,7 @@ class Device:
 		elif l > 1: l = 1
 		if s == 0: s = .0001
 		elif s > 1: s = 1
-		return colorsys.hls_to_rgb(h,self.brightness*l, s)
+		return colorsys.hls_to_rgb(h,self.saveData['brightness']*l, s)
 	
 	def int_to_hls(self, color:int):
 		# from https://gist.github.com/mathebox/e0805f72e7db3269ec22

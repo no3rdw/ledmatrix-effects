@@ -15,7 +15,10 @@ else:
 # https://learn.adafruit.com/circuitpython-display-support-using-displayio/library-overview
 
 menu = Menu(device)
-device.changeEffect(effects[1])
+if device.writeMode == True:
+	device.changeEffect('Settings')
+else:
+	device.changeEffect(device.saveData['selectedEffect'])
 
 device.gc()
 
