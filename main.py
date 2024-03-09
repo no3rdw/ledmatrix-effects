@@ -7,9 +7,9 @@ from sky import Sky
 from cards import Cards
 effects = ['Cards','Sky','ITYSL','Static']
 
-#if device.writeMode == True:
-from settings import Settings
-effects.append('Settings')
+if device.writeMode == True:
+	from settings import Settings
+	effects.append('Settings')
 
 # https://learn.adafruit.com/circuitpython-display-support-using-displayio/library-overview
 

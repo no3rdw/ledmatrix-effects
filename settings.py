@@ -14,6 +14,9 @@ class Settings:
 		device.clearDisplayGroup(device.effect_group)
 		device.effect_group.append(self.clockline1)
 
+		self.effectList = locals()['effects'][:] # makes a copy of the effects var to remove 'Settings', we don't want it as a startup option
+		self.effectList.remove('Settings')
+
 		self.lastScroll = 0
 
 		self.menu = [
@@ -44,7 +47,7 @@ class Settings:
 		]
 
 	def setStartupEffect(self, direction:int):
-		self.device.saveData['startupEffect'] = self.device.cycleOption(locals()['effects'], self.device.saveData['startupEffect'], direction)
+		self.device.saveData['startupEffect'] = self.device.cycleOption(self.effectList, self.device.saveData['startupEffect'], direction)
 
 	def setBrightness(self, direction:int):
 		self.device.cycleBrightness(direction)
