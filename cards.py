@@ -173,3 +173,10 @@ class Cards:
 					self.removeCard(c)
 				c = c + 1			
 			self.lastFrame = time.monotonic()
+
+		if self.device.menu_group.hidden and sum(locals()['keys']):
+			if locals()['keys'][3]:
+				if (self.device.limitStep(.15, self.device.lastButtonTick)):
+					self.device.lastButtonTick = time.monotonic()
+					self.__init__(device=self.device, style=self.selectedStyle)
+					

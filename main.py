@@ -10,12 +10,12 @@ else:
 	from itysl import ITYSL
 	from sky import Sky
 	from cards import Cards
-	effects = ['Cards', 'Sky','ITYSL','Static']
+	effects = ['Cards','Sky','ITYSL','Static']
 
 # https://learn.adafruit.com/circuitpython-display-support-using-displayio/library-overview
 
 menu = Menu(device)
-device.changeEffect(effects[0])
+device.changeEffect(effects[1])
 
 device.gc()
 

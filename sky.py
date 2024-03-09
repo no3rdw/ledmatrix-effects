@@ -44,7 +44,7 @@ class Sky:
 		me['group'] = displayio.Group()
 
 		plane_b = displayio.OnDiskBitmap('images/plane.bmp')
-		plane_b.pixel_shader.make_transparent(7)
+		plane_b.pixel_shader.make_transparent(6)
 		
 		t = displayio.TileGrid(bitmap=plane_b, 
 						pixel_shader=self.device.alphaPalette(plane_b.pixel_shader),
