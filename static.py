@@ -102,6 +102,6 @@ class Static:
 		
 		if self.device.menu_group.hidden and sum(locals()['keys']):
 			if locals()['keys'][3]:
-				if (self.device.limitStep(.15, self.device.lastButtonTick)):
+				if (self.device.limitStep(self.device.buttonPause, self.device.lastButtonTick)):
 					self.bitmap.fill(0)
 			
