@@ -62,21 +62,30 @@ class Settings:
 			return hour % 12
 
 	def getHour(self):
-		t = self.device.rtc.datetime
-		return '%d' % self.fixHour(t.tm_hour)
+		if hasattr(self.device.rtc, 'datetime'):
+			t = self.device.rtc.datetime
+			return '%d' % self.fixHour(t.tm_hour)
+		else:
+			return '0'
 
 	def getMinute(self):
-		t = self.device.rtc.datetime
-		return '%02d' % t.tm_min
+		if hasattr(self.device.rtc, 'datetime'):
+			t = self.device.rtc.datetime
+			return '%02d' % t.tm_min
+		else:
+			return '0'
 	
 	def updateClock(self):
-		t = self.device.rtc.datetime
-		self.clockline1.hidden = 0
-		self.clockline1.text="%d:%02d:%02d" % (self.fixHour(t.tm_hour), t.tm_min, t.tm_sec)
+		if hasattr(self.device.rtc, 'datetime'):
+			t = self.device.rtc.datetime
+			self.clockline1.hidden = 0
+			self.clockline1.text="%d:%02d:%02d" % (self.fixHour(t.tm_hour), t.tm_min, t.tm_sec)
 
-		line_width = self.clockline1.bounding_box[2]
-		if self.clockline1.x < -line_width:
-			self.clockline1.x = self.device.display.width
+			line_width = self.clockline1.bounding_box[2]
+			if self.clockline1.x < -line_width:
+				self.clockline1.x = self.device.display.width
+		else:
+			self.clockline1.hidden = 1
 
 	def play(self):
 		if (self.device.limitStep(.1, self.lastScroll)):
@@ -87,16 +96,18 @@ class Settings:
 				self.clockline1.hidden = 1
 
 	def setMinute(self, direction:int):
-		t = self.device.rtc.datetime
-		newmin = 0 if t.tm_min == 59 or (direction == -1 and t.tm_min == 0) else t.tm_min + (1*direction)
-		newt = time.struct_time((2024, 1, 1, t.tm_hour, newmin, 0, 0, -1, -1))
-		self.device.rtc.datetime = newt
+		if hasattr(self.device.rtc, 'datetime'):
+			t = self.device.rtc.datetime
+			newmin = 0 if t.tm_min == 59 or (direction == -1 and t.tm_min == 0) else t.tm_min + (1*direction)
+			newt = time.struct_time((2024, 1, 1, t.tm_hour, newmin, 0, 0, -1, -1))
+			self.device.rtc.datetime = newt
 
 	def setHour(self, direction:int):
-		t = self.device.rtc.datetime
-		newhr = 0 if t.tm_hour == 23 or (direction == -1 and t.tm_hour == 0) else t.tm_hour + (1*direction)
-		newt = time.struct_time((2024, 1, 1, newhr, t.tm_min, t.tm_sec, 0, -1, -1))
-		self.device.rtc.datetime = newt
+		if hasattr(self.device.rtc, 'datetime'):
+			t = self.device.rtc.datetime
+			newhr = 0 if t.tm_hour == 23 or (direction == -1 and t.tm_hour == 0) else t.tm_hour + (1*direction)
+			newt = time.struct_time((2024, 1, 1, newhr, t.tm_min, t.tm_sec, 0, -1, -1))
+			self.device.rtc.datetime = newt
 
 	def writeData(self, direction:int):
 		if self.device.writeMode == True:
