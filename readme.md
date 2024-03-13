@@ -13,3 +13,5 @@ This project was built for a Feather M4 Express, 32x32 LED Matrix, a NeoKey 1x4,
 - Included font converted from OpenType font 04B03
 - Easing functions in device.py courtesy Easings.net
 - All other code by Paul Gallo (pgallo@gmail.com)
+- Easing functions in device.py courtesy Easings.net
+- All other code by Paul Gallo (pgallo@gmail.com)
