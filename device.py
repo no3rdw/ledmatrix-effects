@@ -1,4 +1,4 @@
-import board, time, json
+import board, time, json, math
 from digitalio import DigitalInOut, Pull
 from adafruit_neokey.neokey1x4 import NeoKey1x4
 import pcf8523
@@ -14,16 +14,25 @@ from adafruit_bitmap_font import bitmap_font
 class Device:
 	def __init__(self):
 		displayio.release_displays()
+		self.i2c = board.I2C()
+
+		################### Hardware Config ##################
+
+		# If no NeoKey module, replace the following line with the line below
+		self.neokey = NeoKey1x4(self.i2c)
+		# self.neokey = None
+
+		# If no RTC module, replace the following line with the line below
+		self.rtc = pcf8523.PCF8523(self.i2c)
+		# self.rtc = None
+
+
+		if hasattr(self.neokey, "pixels"):
+			self.neokey.pixels.brightness = 0
+		else:
+			locals()['keys'] = [0,0,0,0]
 
 		self.effect = None
-
-		##### NeoKey Setup
-		self.i2c = board.I2C()
-		# Create a NeoKey object
-		self.neokey = NeoKey1x4(self.i2c)
-		self.neokey.pixels.brightness = 0
-
-		self.rtc = pcf8523.PCF8523(self.i2c)
 
 		try:
 			self.writeMode = not storage.getmount("/").readonly
@@ -78,21 +87,25 @@ class Device:
 			self.gc(1)
 
 	def getTime(self, seconds:bool=True):
-		t = self.rtc.datetime
-		if t.tm_hour == 0 or t.tm_hour == 12:
-			hour = 12
+		if hasattr(self.rtc, 'datetime'):
+			t = self.rtc.datetime
+			if t.tm_hour == 0 or t.tm_hour == 12:
+				hour = 12
+			else:
+				hour = t.tm_hour % 12
+			if seconds:
+				return "%d:%02d:%02d" % (hour, t.tm_min, t.tm_sec)
+			else:
+				return "%d:%02d" % (hour, t.tm_min)
 		else:
-			hour = t.tm_hour % 12
-		if seconds:
-			return "%d:%02d:%02d" % (hour, t.tm_min, t.tm_sec)
-		else:
-			return "%d:%02d" % (hour, t.tm_min)
+			return "00:00:00"
 
 	def getEffectName(self):
 		return self.effect.displayname
 
 	def resetKeypixel(self, n:int):
-		self.neokey.pixels[n] = 0
+		if hasattr(self.neokey, "pixels"):
+			self.neokey.pixels[n] = 0
 
 	def limitStep(self, limit:float, pastTick:float):
 		nowTick = time.monotonic()
@@ -153,8 +166,11 @@ class Device:
 			i += 1
 		return p
 
-	# https://easings.net/
-	'''def easeInOutSine(self, x:int):
+	# Easing functions courtesy https://easings.net/
+	def easeOutSine(self, x:float):
+		return math.sin((x * math.pi) / 2)
+	
+	def easeInOutSine(self, x:int):
 		return -(math.cos(math.pi * x) - 1) / 2
 
 	def easeInOutQuad(self, x:int):
@@ -168,6 +184,3 @@ class Device:
 			return  8 * x * x * x * x 
 		else:
 			return 1 - math.pow(-2 * x + 2, 4) / 2
-	'''
-	#self.x = self.easeInOutQuart(self.i / self.maxchanged) * self.maxchanged
-	

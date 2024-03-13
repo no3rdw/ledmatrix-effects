@@ -19,7 +19,9 @@ device.changeEffect(device.saveData['startupEffect'])
 device.gc()
 
 while True:
-	keys = device.neokey.get_keys() # using this is MUCH faster than referencing device.neokey[x] over and over 
+	if hasattr(device.neokey, "pixels"):
+		keys = device.neokey.get_keys() # using this is MUCH faster than referencing device.neokey[x] over and over 
+	
 	if device.menu_group.hidden and keys[0] and device.limitStep(device.buttonPause, device.lastButtonTick): # only enter this loop if menu button is down
 		device.setLastButtonTick()
 		menu.showMenu()

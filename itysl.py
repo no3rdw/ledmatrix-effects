@@ -239,9 +239,6 @@ class ITYSL:
 		self.polygroup.pop(i)
 		if len(self.polys)-1 >= i:
 			self.polys.pop(i)
-
-	def easeOutSine(self, x:float):
-		return math.sin((x * math.pi) / 2)
 	
 	def cycleSubEffect(self, direction:int):
 		currentIndex = self.subEffects.index(self.subEffect)
@@ -324,7 +321,7 @@ class ITYSL:
 			i = 0
 			while i < len(self.polys):
 				me = self.polys[i]
-				me['poly'].radius = round(self.easeOutSine(me['pcomplete'] / self.maxsize) * self.maxsize)
+				me['poly'].radius = round(self.device.easeOutSine(me['pcomplete'] / self.maxsize) * self.maxsize)
 				me['pcomplete'] = me['pcomplete'] + 1
 				me['poly'].y = round(me['poly'].radius)-1
 				if me['poly'].radius >= self.maxsize:
