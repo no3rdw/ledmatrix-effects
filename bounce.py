@@ -2,7 +2,7 @@ import time, vectorio, displayio, random
 import adafruit_display_text.label
 import bitmaptools
 
-class Cards:
+class Bounce:
 	def __init__(self, device:Device, style:str='Cards'):
 		self.name = type(self).__name__
 		self.displayname = 'Bounce'

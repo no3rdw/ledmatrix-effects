@@ -142,7 +142,7 @@ class ITYSL:
 	def addCircle(self):
 		newcircle = {}
 
-		if	self.totalCircles % 10 == 0 or self.totalCircles % 10 == 1:
+		if self.totalCircles % 10 == 0 or self.totalCircles % 10 == 1:
 			color = 0
 		elif self.totalCircles % 2 == 1:
 			color = 1

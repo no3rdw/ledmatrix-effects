@@ -63,7 +63,7 @@ class Device:
 		self.font = bitmap_font.load_font("lib/fonts/04B_03__6pt.bdf")
 		self.font.load_glyphs('1234567890QWERTYUIOPLKJHGFDSAZXCVBNMmnbvcxzasdfghjklpoiuytrewq&:')
 		self.lastButtonTick = 0
-		self.buttonPause = .15
+		self.buttonPause = .20
 	
 	def cycleOption(self, optionList, selectedOption, direction):
 		currentIndex = optionList.index(selectedOption)

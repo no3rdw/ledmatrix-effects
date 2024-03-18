@@ -4,8 +4,9 @@ from menu import Menu
 from static import Static
 from itysl import ITYSL
 from sky import Sky
-from cards import Cards
-effects = ['Cards','Sky','ITYSL','Static']
+from bounce import Bounce
+from grow import Grow
+effects = ['Grow','Bounce','Sky','ITYSL','Static']
 
 if device.writeMode == True:
 	from settings import Settings
