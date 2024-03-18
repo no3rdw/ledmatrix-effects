@@ -73,9 +73,11 @@ class Grow:
 		self.cloudshader.make_transparent(2)
 
 		self.ground = vectorio.Rectangle(pixel_shader=self.p, x=0, y=device.display.height-1, width=device.display.width, height=1, color_index=2)
+		self.sun = vectorio.Circle(pixel_shader=self.p, x=0, y=0, radius=5, color_index=21)
 
 		self.cloudbg = self.initCloud(1)
 		self.cloudfg = self.initCloud(2)
+		self.cloudgroup.append(self.sun)
 		self.cloudgroup.append(self.cloudbg['group'])
 		self.cloudgroup.append(self.cloudfg['group'])
 
@@ -153,7 +155,7 @@ class Grow:
 		me['group'].x = me['group'].x + random.randint(0,2)-1
 		me['group'].y = me['group'].y + random.randint(0,2)-1
 
-		if me['group'].x < 0 or me['group'].x > self.device.display.width or me['group'].y < 0 or me['group'].y > self.device.display.height:
+		if me['group'].x < -3 or me['group'].x > self.device.display.width or me['group'].y < 0 or me['group'].y > self.device.display.height-3:
 			me['group'].y = 16
 			me['group'].x = 16
 			# re-init params when goes offscreen
