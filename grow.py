@@ -1,6 +1,13 @@
 import time, vectorio, displayio, random, math, bitmaptools
 
+
 class Grow:
+
+	def setDaySpeed(self, direction:int):
+		self.daycyclespeed = self.device.cycleOption([1,2,4,8,10], self.daycyclespeed, direction)
+
+	def getDaySpeed(self):
+		return str(self.daycyclespeed)
 
 	def __init__(self, device:Device):
 		self.name = type(self).__name__
@@ -9,19 +16,22 @@ class Grow:
 
 		device.clearDisplayGroup(device.effect_group)
 
+		self.daycyclespeed = 1
+
 		self.menu = [
-			#{
-			#	'label': 'Setting',
-			#	'set': self.setFunction,
-			#	'get': self.getFunction
-			#}
+			{
+				'label': 'Speed',
+				'set': self.setDaySpeed,
+				'get': self.getDaySpeed
+			}
 		]
 		self.lastFrame = 0
 		self.lastPlantInit = 0
 		self.lastCloudFrame = 0
 		self.beeFrame = 0
+		self.lastTwinkleFrame = 0
 		
-		self.p = displayio.Palette(22)
+		self.p = displayio.Palette(32)
 		self.p[0] = device.hls(.6, .1, .8) # bg
 
 		self.p[1] = device.hls(.35, .3, .8) # green
@@ -49,6 +59,17 @@ class Grow:
 		self.p[20] = device.hls(1, .4, 0) # grey
 		self.p[21] = device.hls(.13, .8, 1) # cream?
 
+		self.p[22] = device.hls(.6, .2, .85) # bglighter
+		self.p[23] = device.hls(.6, .25, .9) # bglighter
+		self.p[24] = device.hls(.59, .3, .8) # bglighter
+		self.p[25] = device.hls(.58, .3, .9) # bglighter
+		self.p[26] = device.hls(.57, .35, .8) # bglighter
+		self.p[27] = device.hls(.56, .35, .9) # bglighter
+		self.p[28] = device.hls(.55, .38, .8) # bglighter
+		self.p[29] = device.hls(.54, .95, .9) # moon
+		self.p[30] = device.hls(.54, .7, .9) # star1
+		self.p[31] = device.hls(.54, .8, .9) # star2
+
 		self.stemfade = [
 			[1,2,3,4],
 			[5,6,7,8],
@@ -61,25 +82,46 @@ class Grow:
 
 		# Create a bitmap with the number of colors in the selected palette
 		self.bitmap = displayio.Bitmap(device.display.width, device.display.height, len(self.p))
-		tile_grid = displayio.TileGrid(self.bitmap, pixel_shader=self.p)
-		bitmaptools.fill_region(dest_bitmap=self.bitmap, x1=0, y1=0, x2=device.display.width, y2=device.display.height, value=0)
-		device.effect_group.append(tile_grid)
+		self.tile_grid = displayio.TileGrid(self.bitmap, pixel_shader=self.p)
+		
+		#bitmaptools.fill_region(dest_bitmap=self.bitmap, x1=0, y1=0, x2=device.display.width, y2=device.display.height, value=0)
+		device.effect_group.append(self.tile_grid)
 
 		self.cloudgroup = displayio.Group()
-		device.effect_group.append(self.cloudgroup)
 
 		self.cloud_b = displayio.OnDiskBitmap('images/cloud2.bmp')
 		self.cloudshader = self.device.alphaPalette(self.cloud_b.pixel_shader, True)
 		self.cloudshader.make_transparent(2)
 
 		self.ground = vectorio.Rectangle(pixel_shader=self.p, x=0, y=device.display.height-1, width=device.display.width, height=1, color_index=2)
-		self.sun = vectorio.Circle(pixel_shader=self.p, x=0, y=0, radius=5, color_index=21)
+		
+		sun1 = vectorio.Circle(pixel_shader=self.p, x=0, y=0, radius=85, color_index=22)
+		sun3 = vectorio.Circle(pixel_shader=self.p, x=0, y=0, radius=65, color_index=24)
+		sun5 = vectorio.Circle(pixel_shader=self.p, x=0, y=0, radius=45, color_index=26)
+		sun7 = vectorio.Circle(pixel_shader=self.p, x=0, y=0, radius=25, color_index=28)
+		sunYellow = vectorio.Circle(pixel_shader=self.p, x=0, y=0, radius=5, color_index=21)
+		self.sungroup = displayio.Group()
+		self.sungroup.x = -10
+		self.sungroup.y = -10
+		self.sungroup.append(sun1)
+		self.sungroup.append(sun3)
+		self.sungroup.append(sun5)
+		self.sungroup.append(sun7)
+		self.sungroup.append(sunYellow)
+		device.effect_group.append(self.sungroup)
+
+		moon = vectorio.Circle(pixel_shader=self.p, x=0, y=4, radius=4, color_index=29)
+		mooncutout = vectorio.Circle(pixel_shader=self.p, x=-2, y=4, radius=3, color_index=0)
+		self.moongroup = displayio.Group()
+		self.moongroup.append(moon)
+		self.moongroup.append(mooncutout)
+		device.effect_group.append(self.moongroup)
 
 		self.cloudbg = self.initCloud(1)
 		self.cloudfg = self.initCloud(2)
-		self.cloudgroup.append(self.sun)
 		self.cloudgroup.append(self.cloudbg['group'])
 		self.cloudgroup.append(self.cloudfg['group'])
+		device.effect_group.append(self.cloudgroup)
 
 		self.beegroup = displayio.Group()
 		self.bee = self.initBee()
@@ -94,6 +136,15 @@ class Grow:
 		device.effect_group.append(self.ground)
 
 		device.effect_group.append(self.beegroup)
+
+		# Object properties
+		self.arc_radius = 64
+		self.arc_center = (16, 64)
+		self.sun_angle = math.radians(270)
+		self.moon_angle = math.radians(90)
+		self.day = 1
+		self.stars = []
+
 
 	def rotatePoint(self, point, angle, center=(0,0)):
 		angle = (angle) * (math.pi/180) #Convert to radians
@@ -133,8 +184,13 @@ class Grow:
 		me['group'].append(c)
 		return me
 	
+	def shadeCloud(self, me, shade:float):
+		newBitmap = displayio.OnDiskBitmap('images/cloud2.bmp')
+		me['group'][0].pixel_shader = self.device.alphaPalette(newBitmap.pixel_shader, True, shade)
+		me['group'][0].pixel_shader.make_transparent(2)
+
 	def moveCloud(self, me):
-		me['group'].x = me['group'].x + me['scale']	
+		me['group'].x = me['group'].x + me['scale']
 		if me['group'].x > self.device.display.width+(me['delay']*me['scale']):
 			# re-init params after cloud goes offscreen
 			me['group'].x = 0 - round(13 * me['scale'])
@@ -152,14 +208,19 @@ class Grow:
 		return me
 
 	def moveBee(self, me):
-		me['group'].x = me['group'].x + random.randint(0,2)-1
-		me['group'].y = me['group'].y + random.randint(0,2)-1
+		if self.day == 1:
+			me['group'].x = me['group'].x + random.randint(0,2)-1
+			me['group'].y = me['group'].y + random.randint(0,2)-1
 
-		if me['group'].x < -3 or me['group'].x > self.device.display.width or me['group'].y < 0 or me['group'].y > self.device.display.height-3:
-			me['group'].y = 16
-			me['group'].x = 16
-			# re-init params when goes offscreen
-			me['delay'] = random.randrange(10,30)
+			if me['group'].x < -3 or me['group'].x > self.device.display.width or me['group'].y < 0 or me['group'].y > self.device.display.height-3:
+				me['group'].y = 16
+				me['group'].x = 16
+				# re-init params when goes offscreen
+				me['delay'] = random.randrange(10,30)
+		else:
+			if me['group'].x < self.device.display.width:
+				me['group'].x = me['group'].x + 1
+				me['group'].y = me['group'].y + random.randint(0,2)-1
 
 	def initPlant(self):
 		plant = {}
@@ -182,8 +243,8 @@ class Grow:
 		plant['stempoints'] = [(1,0),(-1,0),(-1,1),(1,1)]
 		plant['stem'] = vectorio.Polygon(pixel_shader=self.p, 
 								   	points=plant['stempoints'],
-								    x=plant['startx'],
-								    y=self.device.display.height,
+									x=plant['startx'],
+									y=self.device.display.height,
 									color_index=self.stemfade[plant['color']][0])
 		plant['polygroup'].append(plant['stem'])
 		plant['life'] =  random.randint(15,35)/10
@@ -270,17 +331,99 @@ class Grow:
 		self.plants.pop(i)
 		self.plantgroup.pop(i)
 		self.device.gc(1)
-		
+
+	def _bytes_per_row(self, source_width: int) -> int:
+		pixel_bytes = 3 * source_width
+		padding_bytes = (4 - (pixel_bytes % 4)) % 4
+		return pixel_bytes + padding_bytes
+	
+	'''def bgRainDown(self):
+		y = self.device.display.height-1
+		while y > 0:
+			x = 0
+			while x < self.device.display.width:
+				self.bitmap[x,y] = self.bitmap[x,y-1]
+				x = x + 1
+			y = y - 1
+	'''
+
+	def bgFillLine(self):
+		x = 0
+		while x < self.device.display.width:
+			self.bitmap[x,0] = random.randrange(0,7)+22
+			x = x + 1
+
+	def drawStars(self):
+		x = 0
+		while x < 6:
+			y = 0
+			while y < 6:
+				myx = round(x*5 + random.randrange(0,5))
+				myy = round(y*4.5 + random.randrange(0,5))
+				self.bitmap[myx,myy] = 22
+				self.stars.append((myx,myy))
+				y = y + 1
+			x = x + 1
+
+	def twinkleStars(self):
+		for s in self.stars:
+			self.bitmap[s[0],s[1]] = random.randrange(0,8)+22
+
+	def moveMoon(self):
+		x = self.arc_center[0] + self.arc_radius * math.cos(self.moon_angle)
+		y = self.arc_center[1] + self.arc_radius * math.sin(self.moon_angle)
+		self.moon_angle += self.daycyclespeed/300
+		self.moongroup.x = int(x)
+		self.moongroup.y = int(y)
+
+	def moveSun(self):
+		x = self.arc_center[0] + self.arc_radius * math.cos(self.sun_angle)
+		y = self.arc_center[1] + self.arc_radius * math.sin(self.sun_angle)
+		self.sungroup.x = int(x)
+		self.sungroup.y = int(y)
+		self.sun_angle += self.daycyclespeed/300
+		angle = math.fmod(math.degrees(self.sun_angle), 360)
+
+		if (self.device.limitStep(2/self.daycyclespeed, self.lastTwinkleFrame)):
+			if angle > 330 or angle < 200:
+				self.twinkleStars()
+			angle1 = math.fmod(angle + 90, 360)
+
+			brightness = abs((180-angle1)/360) * 0.9 + .25
+			self.shadeCloud(self.cloudfg, brightness)
+			self.shadeCloud(self.cloudbg, brightness)	
+			self.lastTwinkleFrame = time.monotonic()
+		if angle > 330 or angle < 200:
+			if self.day == 1:
+				self.drawStars()
+				self.day = 0
+		else:
+			if self.day == 0:
+				self.bitmap.fill(0)
+				self.day = 1
+				self.stars = [] # deleteStars
+
 	def play(self):
-		if (self.device.limitStep(2.7, self.lastCloudFrame)):
+		if (self.device.limitStep(2.2/self.daycyclespeed, self.lastCloudFrame)):
 			self.moveCloud(self.cloudfg)
 			self.moveCloud(self.cloudbg)
 			self.lastCloudFrame = time.monotonic()
+		
 		if (self.device.limitStep(1.3, self.lastPlantInit)):
 			if len(self.plants) < 3:
 				self.plants.append(self.initPlant())
 			self.lastPlantInit = time.monotonic()
+			
 		if (self.device.limitStep(.02, self.lastFrame)):
+
+			self.moveSun()
+			self.moveMoon()
+
+			#rowbuffer = bytearray(64)
+			#for y in range(32):
+			#	self.device.display.fill_row(y, rowbuffer)
+			#	bitmaptools.arrayblit(self.bitmap, rowbuffer, 0, y, 32, y+1, None)
+			
 			self.lastFrame = time.monotonic()
 			x = 0
 			while x < len(self.plantgroup):
@@ -299,7 +442,7 @@ class Grow:
 						self.fadePlant(x)
 						plant['timer'] = time.monotonic()
 				x = x + 1
-		if (self.device.limitStep(.08, self.beeFrame)):
+		if (self.device.limitStep(.08/self.daycyclespeed, self.beeFrame)):
 			self.moveBee(self.bee)
 			self.moveBee(self.bee2)
 			self.moveBee(self.bee3)

@@ -125,14 +125,16 @@ class Device:
 		gc.collect()
 		if output: print(str(gc.mem_free()))
 
-	def hls(self, h:float, l:float, s:float):
+	def hls(self, h:float, l:float, s:float, b:float=None):
+		if not b:
+			b = self.saveData['brightness']
 		if h == 0: h = .0001
 		elif h > 1: h = 1
 		if l == 0: l = .0001
 		elif l > 1: l = 1
 		if s == 0: s = .0001
 		elif s > 1: s = 1
-		return colorsys.hls_to_rgb(h,self.saveData['brightness']*l, s)
+		return colorsys.hls_to_rgb(h,b*l, s)
 	
 	def int_to_hls(self, color:int):
 		# from https://gist.github.com/mathebox/e0805f72e7db3269ec22
@@ -158,11 +160,11 @@ class Device:
 		s = abs(s)
 		return h, l, s
 	
-	def alphaPalette(self, p:Palette, pr:bool=False):
+	def alphaPalette(self, p:Palette, pr:bool=False, b:float=None):
 		i=0
 		while i < len(p):
 			h,l,s = self.int_to_hls(p[i])
-			p[i] = self.hls(h,l,s)
+			p[i] = self.hls(h,l,s,b)
 			i += 1
 		return p
 
