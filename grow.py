@@ -17,6 +17,10 @@ class Grow:
 		device.clearDisplayGroup(device.effect_group)
 
 		self.daycyclespeed = 1
+		self.offset_x = 0
+		self.offset_y = 0
+		self.currentscreen = 'Grow'
+		self.screenmoving = 0
 
 		self.menu = [
 			{
@@ -29,6 +33,7 @@ class Grow:
 		self.lastPlantInit = 0
 		self.lastCloudFrame = 0
 		self.beeFrame = 0
+		self.wormFrame = 0
 		self.lastTwinkleFrame = 0
 		
 		self.p = displayio.Palette(32)
@@ -70,6 +75,21 @@ class Grow:
 		self.p[30] = device.hls(.54, .7, .9) # star1
 		self.p[31] = device.hls(.54, .8, .9) # star2
 
+		self.w = displayio.Palette(7)
+		self.w[0] =  device.hls(.04, .05, .5) # bg
+		self.w[1] = device.hls(.04, .06, .5) # worm poop
+		self.w[2] = device.hls(.01, .2, .6) # worm
+		self.w[3] = device.hls(.015, .25, .65) # worm2
+		self.w[4] = device.hls(.04, .1, .3) # mineral
+		self.w[5] = device.hls(.04, .08, .35) # mineral2
+		self.w[6] = device.hls(.04, .06, .4) # mineral3
+
+		self.wormsbitmap = displayio.Bitmap(device.display.width, device.display.height, len(self.w))
+		self.worms_tilegrid = displayio.TileGrid(self.wormsbitmap, pixel_shader=self.w)
+		
+		self.worms_fg = displayio.Group(x=0, y=32)
+		self.worms_fg.append(self.worms_tilegrid)
+
 		self.stemfade = [
 			[1,2,3,4],
 			[5,6,7,8],
@@ -79,6 +99,7 @@ class Grow:
 		self.flowercolors = [13,15,16,17,18,21]
 		self.dotcolors = [13,15,16]
 		self.plants = []
+		self.bees = []
 
 		# Create a bitmap with the number of colors in the selected palette
 		self.bitmap = displayio.Bitmap(device.display.width, device.display.height, len(self.p))
@@ -86,6 +107,10 @@ class Grow:
 		
 		#bitmaptools.fill_region(dest_bitmap=self.bitmap, x1=0, y1=0, x2=device.display.width, y2=device.display.height, value=0)
 		device.effect_group.append(self.tile_grid)
+
+		self.far_bg = displayio.Group()
+		self.grow_fg = displayio.Group()
+		
 
 		self.cloudgroup = displayio.Group()
 
@@ -108,34 +133,35 @@ class Grow:
 		self.sungroup.append(sun5)
 		self.sungroup.append(sun7)
 		self.sungroup.append(sunYellow)
-		device.effect_group.append(self.sungroup)
+
+		self.far_bg.append(self.sungroup)
 
 		moon = vectorio.Circle(pixel_shader=self.p, x=0, y=4, radius=4, color_index=29)
 		mooncutout = vectorio.Circle(pixel_shader=self.p, x=-2, y=4, radius=3, color_index=0)
 		self.moongroup = displayio.Group()
 		self.moongroup.append(moon)
 		self.moongroup.append(mooncutout)
-		device.effect_group.append(self.moongroup)
+		self.far_bg.append(self.moongroup)
+		device.effect_group.append(self.far_bg)
 
 		self.cloudbg = self.initCloud(1)
 		self.cloudfg = self.initCloud(2)
 		self.cloudgroup.append(self.cloudbg['group'])
 		self.cloudgroup.append(self.cloudfg['group'])
-		device.effect_group.append(self.cloudgroup)
+		self.far_bg.append(self.cloudgroup)
 
 		self.beegroup = displayio.Group()
-		self.bee = self.initBee()
-		self.bee2 = self.initBee()
-		self.bee3 = self.initBee()
-		self.beegroup.append(self.bee['group'])
-		self.beegroup.append(self.bee2['group'])
-		self.beegroup.append(self.bee3['group'])
+		self.bees.append(self.initBee())
+		self.bees.append(self.initBee())
+		self.bees.append(self.initBee())
 
 		self.plantgroup = displayio.Group()
-		device.effect_group.append(self.plantgroup)
-		device.effect_group.append(self.ground)
+		self.grow_fg.append(self.plantgroup)
+		self.grow_fg.append(self.ground)
 
-		device.effect_group.append(self.beegroup)
+		self.grow_fg.append(self.beegroup)
+		device.effect_group.append(self.grow_fg)
+		device.effect_group.append(self.worms_fg)
 
 		# Object properties
 		self.arc_radius = 64
@@ -145,6 +171,101 @@ class Grow:
 		self.day = 1
 		self.stars = []
 
+	def initWormScreen(self):
+		self.wormsbitmap.fill(0)
+		self.worms = []
+
+		x = 0
+		while x < 25:
+			# draw some random dots
+			self.wormsbitmap[(random.randint(0,self.device.display.width-1), random.randint(0,self.device.display.height-1))] = random.randint(4,6)
+			x = x + 1
+		
+		x = 0
+		while x < 3:
+			z = self.initWorm()
+			self.worms.append(z)
+			x = x+1
+
+	def initGrowScreen(self):
+		pass
+		#x = 0
+		#while x < len(self.plants):
+		#	self.removePlant(0)
+
+	def initWorm(self):
+		me = {}
+		me['y'] = random.randint(0, self.device.display.height-1)
+		me['x'] = random.randint(0, self.device.display.width-1)
+		me['cells'] = [(me['x'],me['y'])]
+		me['color'] = random.randint(2,3)
+		me['cd'] = 2 #change direction countdown
+		me['fc'] = False # force change direction
+
+		self.wormsbitmap[me['cells'][0]] = me['color']
+
+		me['direction'] = random.randint(1,8)
+		return me
+
+	def moveWorm(self, me):
+		if me['direction'] == 1: #up
+			me['y'] = me['y'] - 1
+		elif me['direction'] == 2: #up-right
+			me['y'] = me['y'] - 1
+			me['x'] = me['x'] + 1
+		elif me['direction'] == 3: #right
+			me['x'] = me['x'] + 1
+		elif me['direction'] == 4: #down-right
+			me['y'] = me['y'] + 1
+			me['x'] = me['x'] + 1
+		elif me['direction'] == 5: #down
+			me['y'] = me['y'] + 1
+		elif me['direction'] == 6: #down-left
+			me['y'] = me['y'] + 1
+			me['x'] = me['x'] - 1
+		elif me['direction'] == 7: #left
+			me['x'] = me['x'] - 1
+		elif me['direction'] == 8: #up-left
+			me['y'] = me['y'] - 1
+			me['x'] = me['x'] - 1
+
+		if me['x'] > self.device.display.width-1:
+			me['x'] = self.device.display.width-1
+			me['fc'] = True
+		elif me['x'] < 0:
+			me['x'] = 0
+			me['fc'] = True
+
+		if me['y'] > self.device.display.height-1:
+			me['y'] = self.device.display.height-1
+			me['fc'] = True
+		elif me['y'] <= 0:
+			me['y'] = 0
+			me['fc'] = True
+
+		me['cells'].append((me['x'],me['y']))
+		self.wormsbitmap[(me['x'],me['y'])] = me['color']
+		if len(me['cells']) > 7:
+			self.wormsbitmap[(me['cells'][0][0], me['cells'][0][1])] = 1
+			me['cells'].pop(0)
+
+		move = random.randint(1,5)
+		if me['fc'] == True and (me['x'] == self.device.display.width-1 or me['y'] == self.device.display.height-1):
+			me['direction'] = self.device.cycleOption([1,2,3,4,5,6,7,8], me['direction'], -random.randint(2,4)) # counterclockwise move
+			me['fc'] = False
+			me['cd'] = 2
+		elif me['fc'] == True and (me['x'] == 0 or me['y'] == 0):
+			me['direction'] = self.device.cycleOption([1,2,3,4,5,6,7,8], me['direction'], random.randint(2,4)) # clockwise move
+			me['fc'] = False
+			me['cd'] = 2
+		elif move == 5 and me['cd'] <= 0:
+			me['direction'] = self.device.cycleOption([1,2,3,4,5,6,7,8], me['direction'], 1)
+			me['cd'] = 2
+		elif move == 4 and me['cd'] <= 0:
+			me['direction'] = self.device.cycleOption([1,2,3,4,5,6,7,8], me['direction'], -1)
+			me['cd'] = 2
+		else:
+			me['cd'] = me['cd'] - 1
 
 	def rotatePoint(self, point, angle, center=(0,0)):
 		angle = (angle) * (math.pi/180) #Convert to radians
@@ -205,8 +326,9 @@ class Grow:
 		me['group'].append(vectorio.Rectangle(pixel_shader=self.p, width=1, height=1,x=2,y=1,color_index=15))
 		me['group'].append(vectorio.Rectangle(pixel_shader=self.p, width=2, height=1,x=1,y=0,color_index=20))
 		me['delay'] = random.randrange(10,30)
+		self.beegroup.append(me['group'])
 		return me
-
+	
 	def moveBee(self, me):
 		if self.day == 1:
 			me['group'].x = me['group'].x + random.randint(0,2)-1
@@ -330,7 +452,6 @@ class Grow:
 			self.plants[i]['polygroup'].pop(0)
 		self.plants.pop(i)
 		self.plantgroup.pop(i)
-		self.device.gc(1)
 
 	def _bytes_per_row(self, source_width: int) -> int:
 		pixel_bytes = 3 * source_width
@@ -403,28 +524,33 @@ class Grow:
 				self.day = 1
 				self.stars = [] # deleteStars
 
+	def moveScreen(self, direction, target):
+		self.offset_y = self.offset_y + direction
+		self.grow_fg.y = self.offset_y
+		self.worms_fg.y = self.offset_y + 32
+		if self.offset_y % 32 == 0:
+			self.screenmoving = 0
+			self.currentscreen = target
+			#if target == 'Worms':
+				
+		#print(self.offset_y, self.screenmoving, self.currentscreen)
+
 	def play(self):
-		if (self.device.limitStep(2.2/self.daycyclespeed, self.lastCloudFrame)):
-			self.moveCloud(self.cloudfg)
-			self.moveCloud(self.cloudbg)
-			self.lastCloudFrame = time.monotonic()
+		if self.currentscreen == 'Grow' and self.screenmoving == 0:
+			if (self.device.limitStep(2.2/self.daycyclespeed, self.lastCloudFrame)):
+				self.moveCloud(self.cloudfg)
+				self.moveCloud(self.cloudbg)
+				self.lastCloudFrame = time.monotonic()
+			
+			if (self.device.limitStep(1.3, self.lastPlantInit)):
+				if len(self.plants) < 3:
+					self.plants.append(self.initPlant())
+				self.lastPlantInit = time.monotonic()
 		
-		if (self.device.limitStep(1.3, self.lastPlantInit)):
-			if len(self.plants) < 3:
-				self.plants.append(self.initPlant())
-			self.lastPlantInit = time.monotonic()
+			if (self.device.limitStep(.02, self.lastFrame)):
+				self.moveSun()
+				self.moveMoon()
 			
-		if (self.device.limitStep(.02, self.lastFrame)):
-
-			self.moveSun()
-			self.moveMoon()
-
-			#rowbuffer = bytearray(64)
-			#for y in range(32):
-			#	self.device.display.fill_row(y, rowbuffer)
-			#	bitmaptools.arrayblit(self.bitmap, rowbuffer, 0, y, 32, y+1, None)
-			
-			self.lastFrame = time.monotonic()
 			x = 0
 			while x < len(self.plantgroup):
 				plant = self.plants[x]
@@ -442,8 +568,33 @@ class Grow:
 						self.fadePlant(x)
 						plant['timer'] = time.monotonic()
 				x = x + 1
-		if (self.device.limitStep(.08/self.daycyclespeed, self.beeFrame)):
-			self.moveBee(self.bee)
-			self.moveBee(self.bee2)
-			self.moveBee(self.bee3)
-			self.beeFrame = time.monotonic()
+
+			if (self.device.limitStep(.08/self.daycyclespeed, self.beeFrame)):
+				x = 0
+				while x < len(self.bees):
+					self.moveBee(self.bees[x])
+					x = x + 1
+				self.beeFrame = time.monotonic()
+
+		elif self.currentscreen == 'Worms' and self.screenmoving == 0:
+			if (self.device.limitStep(.15/self.daycyclespeed, self.wormFrame)):
+				x = 0
+				while x < len(self.worms):
+					self.moveWorm(self.worms[x])
+					x = x+1
+				self.wormFrame = time.monotonic()
+
+		if (self.device.limitStep(.02, self.lastFrame)):
+			self.lastFrame = time.monotonic()
+
+			if self.device.menu_group.hidden and sum(locals()['keys']):
+				if locals()['keys'][3] and self.currentscreen == 'Grow' and self.screenmoving == 0:
+					self.screenmoving = -1
+					self.target = 'Worms'
+					self.initWormScreen()
+				elif locals()['keys'][3] and self.currentscreen == 'Worms' and self.screenmoving == 0:
+					self.screenmoving = 1
+					self.target = 'Grow'
+					self.initGrowScreen()
+			if self.screenmoving != 0:
+				self.moveScreen(self.screenmoving, self.target)

@@ -6,7 +6,10 @@ from itysl import ITYSL
 from sky import Sky
 from bounce import Bounce
 from grow import Grow
-effects = ['Grow','Bounce','Sky','ITYSL','Static']
+from midiviz import MidiViz
+from worms import Worms
+
+effects = ['MidiViz', 'Grow','Bounce','Sky','ITYSL','Static']
 
 if device.writeMode == True:
 	from settings import Settings
