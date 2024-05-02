@@ -80,7 +80,7 @@ class Grow:
 		self.p[32] = device.hls(.7, .8, 1) # lavender
 		self.p[33] = device.hls(.99, .8, .8) # pink
 
-		self.w = displayio.Palette(7)
+		self.w = displayio.Palette(9)
 		self.w[0] =  device.hls(.04, .05, .5) # bg
 		self.w[1] = device.hls(.04, .06, .5) # worm poop
 		self.w[2] = device.hls(.01, .2, .6) # worm
@@ -88,6 +88,9 @@ class Grow:
 		self.w[4] = device.hls(.04, .1, .3) # mineral
 		self.w[5] = device.hls(.04, .08, .35) # mineral2
 		self.w[6] = device.hls(.04, .06, .4) # mineral3
+		self.w[7] = device.hls(0, 0, 0) # transparent
+		self.w[8] = device.hls(.04, .4, .35)  # roots
+		self.w.make_transparent(7)
 
 		self.wormtrailcolor = 1
 
@@ -96,6 +99,12 @@ class Grow:
 		
 		self.worms_fg = displayio.Group(x=0, y=32)
 		self.worms_fg.append(self.worms_tilegrid)
+
+		self.rootsbitmap = displayio.Bitmap(device.display.width, device.display.height, len(self.w))
+		self.roots_tilegrid = displayio.TileGrid(self.rootsbitmap, pixel_shader=self.w)
+		self.rootsbitmap.fill(7)
+		self.worms_fg.append(self.roots_tilegrid)
+		
 
 		self.stemfade = [
 			[1,2,3,4],
@@ -183,6 +192,7 @@ class Grow:
 		self.wormTrailColorSwitch = time.monotonic()
 		self.worms = []
 		self.wormtrailcolor = 1
+		self.roots = []
 
 		x = 0
 		while x < 25:
@@ -192,8 +202,7 @@ class Grow:
 		
 		x = 0
 		while x < 3:
-			z = self.initWorm()
-			self.worms.append(z)
+			self.worms.append(self.initWorm())
 			x = x+1
 
 	def initGrowScreen(self):
@@ -201,6 +210,63 @@ class Grow:
 		#x = 0
 		#while x < len(self.plants):
 		#	self.removePlant(0)
+
+	def initRoot(self, x=0, y=0):
+		me = {}
+		if x == 0: x = random.randint(5, self.device.display.width-5)
+		me['x'] = x
+		me['y'] = y
+		me['currentleftwidth'] = 0
+		me['currentrightwidth'] = 0
+		me['currentleftx'] = 0
+		me['currentrightx'] = 0
+		me['stage'] = 0 # 0 = growing vertical 1 = growing horizontal 2 = grow joints 3 = delete root
+		me['height'] = random.randint(1,6)
+		me['currentheight'] = 1
+		me['leftwidth'] = random.randint(1,4)
+		me['rightwidth'] = random.randint(1,4)
+		return me
+
+	def growRoot(self, me):
+		if me['stage'] == 0:
+			self.rootsbitmap[( me['x'], me['y'])] = 8
+			me['y'] += 1
+			if me['y'] > self.device.display.height-1: 
+				self.removeRoot()
+				return
+			me['currentheight'] += 1
+			if me['currentheight'] >= me['height']: me['stage'] += 1
+		elif me['stage'] == 1:
+			if abs(me['currentleftwidth']) < me['leftwidth']:
+				me['currentleftwidth'] -= 1
+				if me['currentleftwidth']+me['x'] < 0:
+					me['currentleftx']  = 0
+				else: 
+					me['currentleftx'] = me['currentleftwidth']+me['x']
+				self.rootsbitmap[(me['currentleftx'],me['y'])] = 8
+				#print('left',(me['currentleftx'],me['y']))
+			if abs(me['currentrightwidth']) < me['rightwidth']:
+				me['currentrightwidth'] += 1
+				if me['currentrightwidth']+me['x'] > self.device.display.height-1:
+					me['currentrightx'] = self.device.display.height-1
+				else: 
+					me['currentrightx'] = me['currentrightwidth' ]+ me['x']
+					#print('right',( me['currentrightx'] ,me['y']))
+				self.rootsbitmap[( me['currentrightx'] ,me['y'])] = 8
+			if abs(me['currentleftwidth']) >= me['leftwidth'] and abs(me['currentrightwidth']) >= me['rightwidth']:
+				me['stage'] += 1
+		elif me['stage'] == 2:
+			if random.randint(1,3) != 1:
+				self.roots.append(self.initRoot(me['currentleftx'],me['y']))
+			if random.randint(1,3) != 1:
+				self.roots.append(self.initRoot(me['currentrightx'],me['y']))
+			me['stage'] += 1
+		elif me['stage'] == 3:
+			pass
+
+	def removeRoot(self):
+		self.roots = []
+		self.rootsbitmap.fill(7)
 
 	def initWorm(self):
 		me = {}
@@ -607,6 +673,21 @@ class Grow:
 				while x < len(self.worms):
 					self.moveWorm(self.worms[x])
 					x = x+1
+				x = 0
+				movingcount = 0
+				if len(self.roots) > 0 and len(self.roots) < 30:
+					while x < len(self.roots):
+						if self.roots[x]['stage'] != 3:
+							movingcount += 1
+						self.growRoot(self.roots[x])
+						x = x+1
+					if movingcount == 0:
+						self.removeRoot()
+				elif len(self.roots) >= 30:
+					self.removeRoot()
+				else:
+					self.roots.append(self.initRoot())
+
 				self.wormFrame = time.monotonic()
 
 			if (self.device.limitStep(60/self.daycyclespeed, self.wormTrailColorSwitch)):
