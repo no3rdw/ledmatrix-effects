@@ -34,9 +34,10 @@ class Grow:
 		self.lastCloudFrame = 0
 		self.beeFrame = 0
 		self.wormFrame = 0
+		self.wormTrailColorSwitch = 0
 		self.lastTwinkleFrame = 0
 		
-		self.p = displayio.Palette(32)
+		self.p = displayio.Palette(35)
 		self.p[0] = device.hls(.6, .1, .8) # bg
 
 		self.p[1] = device.hls(.35, .3, .8) # green
@@ -63,6 +64,7 @@ class Grow:
 		self.p[19] = device.hls(.9, 0, 0) # black
 		self.p[20] = device.hls(1, .4, 0) # grey
 		self.p[21] = device.hls(.13, .8, 1) # cream?
+		
 
 		self.p[22] = device.hls(.6, .2, .85) # bglighter
 		self.p[23] = device.hls(.6, .25, .9) # bglighter
@@ -75,6 +77,9 @@ class Grow:
 		self.p[30] = device.hls(.54, .7, .9) # star1
 		self.p[31] = device.hls(.54, .8, .9) # star2
 
+		self.p[32] = device.hls(.7, .8, 1) # lavender
+		self.p[33] = device.hls(.99, .8, .8) # pink
+
 		self.w = displayio.Palette(7)
 		self.w[0] =  device.hls(.04, .05, .5) # bg
 		self.w[1] = device.hls(.04, .06, .5) # worm poop
@@ -83,6 +88,8 @@ class Grow:
 		self.w[4] = device.hls(.04, .1, .3) # mineral
 		self.w[5] = device.hls(.04, .08, .35) # mineral2
 		self.w[6] = device.hls(.04, .06, .4) # mineral3
+
+		self.wormtrailcolor = 1
 
 		self.wormsbitmap = displayio.Bitmap(device.display.width, device.display.height, len(self.w))
 		self.worms_tilegrid = displayio.TileGrid(self.wormsbitmap, pixel_shader=self.w)
@@ -96,7 +103,7 @@ class Grow:
 			[9,10,11,12]
 		]
 
-		self.flowercolors = [13,15,16,17,18,21]
+		self.flowercolors = [13,15,16,17,18,21,32,33]
 		self.dotcolors = [13,15,16]
 		self.plants = []
 		self.bees = []
@@ -123,7 +130,7 @@ class Grow:
 		sun1 = vectorio.Circle(pixel_shader=self.p, x=0, y=0, radius=85, color_index=22)
 		sun3 = vectorio.Circle(pixel_shader=self.p, x=0, y=0, radius=65, color_index=24)
 		sun5 = vectorio.Circle(pixel_shader=self.p, x=0, y=0, radius=45, color_index=26)
-		sun7 = vectorio.Circle(pixel_shader=self.p, x=0, y=0, radius=25, color_index=28)
+		#sun7 = vectorio.Circle(pixel_shader=self.p, x=0, y=0, radius=25, color_index=28)
 		sunYellow = vectorio.Circle(pixel_shader=self.p, x=0, y=0, radius=5, color_index=21)
 		self.sungroup = displayio.Group()
 		self.sungroup.x = -10
@@ -131,7 +138,7 @@ class Grow:
 		self.sungroup.append(sun1)
 		self.sungroup.append(sun3)
 		self.sungroup.append(sun5)
-		self.sungroup.append(sun7)
+		#self.sungroup.append(sun7)
 		self.sungroup.append(sunYellow)
 
 		self.far_bg.append(self.sungroup)
@@ -173,7 +180,9 @@ class Grow:
 
 	def initWormScreen(self):
 		self.wormsbitmap.fill(0)
+		self.wormTrailColorSwitch = time.monotonic()
 		self.worms = []
+		self.wormtrailcolor = 1
 
 		x = 0
 		while x < 25:
@@ -246,7 +255,8 @@ class Grow:
 		me['cells'].append((me['x'],me['y']))
 		self.wormsbitmap[(me['x'],me['y'])] = me['color']
 		if len(me['cells']) > 7:
-			self.wormsbitmap[(me['cells'][0][0], me['cells'][0][1])] = 1
+			# remove the last cell from the worm and set the pixel to the bg color
+			self.wormsbitmap[(me['cells'][0][0], me['cells'][0][1])] = self.wormtrailcolor
 			me['cells'].pop(0)
 
 		move = random.randint(1,5)
@@ -348,20 +358,26 @@ class Grow:
 		plant = {}
 		plant['leaves'] = []
 		plant['stage'] = 0 # 0 = leaves grow, 1 = flower grow, 2 = wait, 3 = fade, pop
-
-		plant['flowersize'] = random.randint(4,5)
+		plant['flowertype'] = random.randint(1,2)
+		if plant['flowertype'] == 1:
+			plant['flowersize'] = random.randint(4,5)
+			plant['leafrotation'] = -random.randint(20,50)
+			plant['leafleftmod'] = random.randint(4,6)
+			plant['leafrightmod'] = plant['leafleftmod'] + (random.randint(0,2)-1)
+		else:
+			plant['flowersize'] = 3
+			plant['leafrotation'] = -random.randint(70,85)
+			plant['leafleftmod'] = 9
+			plant['leafrightmod'] = plant['leafleftmod']
 		plant['dotsize'] = plant['flowersize'] - 1
-		plant['height'] = random.randint(12,self.device.display.height-(plant['flowersize']*2))
+		plant['height'] = random.randint(12,self.device.display.height-plant['flowersize']-5)
 		plant['currentheight'] = 1
 		plant['color'] = random.randint(0,2)
 		plant['colorindex'] = 0
 		plant['polygroup'] = displayio.Group()
 		plant['startx'] = random.randint(3, self.device.display.width-6)
-		plant['leafleftmod'] = random.randint(4,6)
-		plant['leafrightmod'] = plant['leafleftmod'] + (random.randint(0,2)-1)
+		
 		plant['leafscale'] = random.randint(100, 150)
-		plant['leafrotation'] = -random.randint(20,50)
-
 		plant['stempoints'] = [(1,0),(-1,0),(-1,1),(1,1)]
 		plant['stem'] = vectorio.Polygon(pixel_shader=self.p, 
 								   	points=plant['stempoints'],
@@ -369,7 +385,7 @@ class Grow:
 									y=self.device.display.height,
 									color_index=self.stemfade[plant['color']][0])
 		plant['polygroup'].append(plant['stem'])
-		plant['life'] =  random.randint(15,35)/10
+		plant['life'] =  random.randint(15,35)/(10*self.daycyclespeed)
 		plant['timer'] = 0
 
 		self.plantgroup.append(plant['polygroup'])
@@ -396,18 +412,27 @@ class Grow:
 	def initFlower(self, plant):
 		plant['flowercolor'] = self.flowercolors[random.randint(0,len(self.flowercolors)-1)]		
 		plant['dotcolor'] = self.dotcolors[random.randint(0,len(self.dotcolors)-1)]
-		if plant['flowercolor'] == plant['dotcolor']:
-			plant['dotcolor'] = 15
-		flower = vectorio.Circle(pixel_shader=self.p, radius=plant['flowersize'],
-								x=plant['startx']-1,
-								y=self.device.display.height + plant['currentheight'],
-								color_index=plant['flowercolor'])
-		dot = vectorio.Rectangle(pixel_shader=self.p, width=plant['dotsize'], height=plant['dotsize'],
-								x=round(plant['startx']-(plant['dotsize']/2)), 
-								y=round(self.device.display.height + plant['currentheight']-(plant['dotsize']/2)),
-								color_index=plant['dotcolor'])
-		plant['polygroup'].append(flower)
-		plant['polygroup'].append(dot)
+		if plant['flowercolor'] == plant['dotcolor']: plant['dotcolor'] = 15
+		if plant['flowertype'] == 1:
+			# daisy / circle flower
+			flower = vectorio.Circle(pixel_shader=self.p, radius=plant['flowersize'],
+									x=plant['startx']-1,
+									y=self.device.display.height + plant['currentheight'],
+									color_index=plant['flowercolor'])
+			dot = vectorio.Rectangle(pixel_shader=self.p, width=plant['dotsize'], height=plant['dotsize'],
+									x=round(plant['startx']-(plant['dotsize']/2)), 
+									y=round(self.device.display.height + plant['currentheight']-(plant['dotsize']/2)),
+									color_index=plant['dotcolor'])
+			plant['polygroup'].append(flower)
+			plant['polygroup'].append(dot)
+		else:
+			#tulip
+			flower = vectorio.Polygon(pixel_shader=self.p,color_index=plant['flowercolor'],
+							 			points=[(0,0),(2,2),(4,0),(6,2),(8,0),(8,6),(5,9),(3,9),(0,6)],
+							 			x=round(plant['startx']-4), 
+										y=round(self.device.display.height + plant['currentheight']-5))
+										
+			plant['polygroup'].append(flower)
 
 	def growPlant(self, plant):
 		if -plant['currentheight'] < plant['height']:	
@@ -583,6 +608,10 @@ class Grow:
 					self.moveWorm(self.worms[x])
 					x = x+1
 				self.wormFrame = time.monotonic()
+
+			if (self.device.limitStep(60/self.daycyclespeed, self.wormTrailColorSwitch)):
+				self.wormtrailcolor = 1 if self.wormtrailcolor == 0 else 0
+				self.wormTrailColorSwitch = time.monotonic()
 
 		if (self.device.limitStep(.02, self.lastFrame)):
 			self.lastFrame = time.monotonic()
