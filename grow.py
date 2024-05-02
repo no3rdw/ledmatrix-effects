@@ -193,6 +193,7 @@ class Grow:
 		self.worms = []
 		self.wormtrailcolor = 1
 		self.roots = []
+		self.rootsbitmap.fill(7)
 
 		x = 0
 		while x < 25:
