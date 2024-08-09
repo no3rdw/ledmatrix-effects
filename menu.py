@@ -51,7 +51,7 @@ class Menu:
 		
 	def showMenu(self):
 		# call showMenu AFTER initial effect is loaded
-		self.moveCaret(0, 0)
+		#self.moveCaret(0, 0)
 		self.refreshMenu()
 		self.device.menu_group.hidden = 0 # show menu
 
@@ -126,3 +126,15 @@ class Menu:
 			if (self.device.limitStep(self.device.buttonPause, self.lastMenuRefresh)):
 				self.lastMenuRefresh = time.monotonic()
 				self.refreshMenu()
+
+	def handleRemote(self, key:str):
+		if key == 'Setup':
+			self.hideMenu()
+		elif key == 'Up':
+			self.moveCaret(-1)
+		elif key == 'Down':
+			self.moveCaret(1)
+		elif key == 'Left':
+			self.changeOption(-1)
+		elif key == 'Right' or key == 'Enter':
+			self.changeOption(1)

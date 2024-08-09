@@ -114,3 +114,6 @@ class Settings:
 			f = open('data.json','w') # 'w' is truncate write
 			f.write(json.dumps(self.device.saveData))
 			f.close()
+
+	def handleRemote(self, key:str):
+		print(key)

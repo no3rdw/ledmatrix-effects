@@ -180,3 +180,7 @@ class Bounce:
 					self.device.lastButtonTick = time.monotonic()
 					self.__init__(device=self.device, style=self.selectedStyle)
 					
+	def handleRemote(self, key:str):
+		if key == 'Enter':
+			self.__init__(device=self.device, style=self.selectedStyle)	
+		print(key)

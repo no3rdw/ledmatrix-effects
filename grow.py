@@ -708,13 +708,23 @@ class Grow:
 			self.lastFrame = time.monotonic()
 
 			if self.device.menu_group.hidden and sum(locals()['keys']):
-				if locals()['keys'][3] and self.currentscreen == 'Grow' and self.screenmoving == 0:
-					self.screenmoving = -1
-					self.target = 'Worms'
-					self.initWormScreen()
-				elif locals()['keys'][3] and self.currentscreen == 'Worms' and self.screenmoving == 0:
-					self.screenmoving = 1
-					self.target = 'Grow'
-					self.initGrowScreen()
+				if locals()['keys'][3]:
+					self.changeTarget()
+
 			if self.screenmoving != 0:
 				self.moveScreen(self.screenmoving, self.target)
+
+	def changeTarget(self):
+		if self.currentscreen == 'Grow' and self.screenmoving == 0:
+			self.screenmoving = -1
+			self.target = 'Worms'
+			self.initWormScreen()
+		elif self.currentscreen == 'Worms' and self.screenmoving == 0:
+			self.screenmoving = 1
+			self.target = 'Grow'
+			self.initGrowScreen()
+
+	def handleRemote(self, key:str):
+		if key == 'Enter':
+			self.changeTarget()
+		print(key)

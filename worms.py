@@ -128,3 +128,6 @@ class Worms:
 				x = x+1
 
 			self.lastFrame = time.monotonic()
+
+	def handleRemote(self, key:str):
+		print(key)

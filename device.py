@@ -1,6 +1,6 @@
 import board, time, json, math
 from digitalio import DigitalInOut, Pull
-from adafruit_neokey.neokey1x4 import NeoKey1x4
+#from adafruit_neokey.neokey1x4 import NeoKey1x4
 import pcf8523
 import rgbmatrix
 import displayio
@@ -21,15 +21,19 @@ class Device:
 		################### Hardware Config ##################
 
 		# If no NeoKey module, replace the following line with the line below
-		self.neokey = NeoKey1x4(self.i2c)
-		# self.neokey = None
+		#self.neokey = NeoKey1x4(self.i2c)
+		self.neokey = None
 
 		# If no RTC module, replace the following line with the line below
 		self.rtc = pcf8523.PCF8523(self.i2c)
 		# self.rtc = None
 
-		# receive IR data from CPX board
+		# The Feather M4 cannot read IR signals and output to the RGBMatrix at the same time
+		# Instead, we'll use a Circuit Playground Express (because I have one on hand)
+		# to read the IR signals from a remote and pass them to the Feather via a serial connection.
+		# If not using a serial connection, replace the following line with the line below.
 		self.uart = busio.UART(None, board.RX, baudrate=38400, timeout=.05)
+		# self.uart = None
 
 		if hasattr(self.neokey, "pixels"):
 			self.neokey.pixels.brightness = 0
@@ -83,6 +87,7 @@ class Device:
 		return optionList[newIndex]
 	
 	def cycleEffect(self, direction:int):
+		locals()['menu'].moveCaret(0, 0)
 		self.changeEffect(self.cycleOption(locals()['effects'], self.effect.name, direction))
 
 	def cycleBrightness(self, direction:int):
@@ -196,11 +201,47 @@ class Device:
 			return 1 - math.pow(-2 * x + 2, 4) / 2
 		
 	def receiveIROverSerial(self):		
-		byte_read = self.uart.read(8)  # Read eight bytes over UART
-		
-		if byte_read:
-			print(byte_read)
-			self.uart.reset_input_buffer()
-		
+		if hasattr(self.uart, "baudrate"):
+			byte_read = self.uart.read(8)  # Read eight bytes over serial connection
+			
+			if byte_read:
+				self.processRemoteKeypress(byte_read.decode('utf-8'))
+				self.uart.reset_input_buffer()
+			
 		self.lastRead = time.monotonic()
+
+	def processRemoteKeypress(self, code:str):
+		table = (("00FD00FF", "VolDown"),
+		   		("00FD807F", "PlayPause"),
+				("00FD40BF", "VolUp"),
+				("00FD20DF", "Setup"),
+				("00FDA05F", "Up"),
+				("00FD609F", "StopMode"),
+				("00FD10EF", "Left"),
+				("00FD906F", "Enter"),
+				("00FD50AF", "Right"),
+				("00FD30CF", "0"),
+				("00FDB04F", "Down"),
+				("00FD708F", "Back"),
+				("00FD08F7", "1"),
+				("00FD8877", "2"),
+				("00FD48B7", "3"),
+				("00FD28D7", "4"),
+				("00FDA857", "5"),
+				("00FD6897", "6"),
+				("00FD18E7", "7"),
+				("00FD9867", "8"),
+				("00FD58A7", "9"))
 		
+		foundAt = [index for index, value in enumerate(table) if value[0] == code]
+		if len(foundAt):
+			key = table[foundAt[0]][1]
+			if not self.menu_group.hidden:
+				locals()['menu'].handleRemote(key)
+			else:
+				if key == 'Setup':
+					locals()['menu'].showMenu()
+				elif key == 'StopMode':
+					self.cycleEffect(1)
+				else:
+					self.effect.handleRemote(key)

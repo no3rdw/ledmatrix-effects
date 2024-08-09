@@ -351,3 +351,8 @@ class ITYSL:
 						self.lastLineCheck = time.monotonic()
 					else:
 						self.initSpiral(device=self.device)
+
+	def handleRemote(self, key:str):
+		print(key)
+		if key == 'Enter':
+			self.cycleSubEffect(1)

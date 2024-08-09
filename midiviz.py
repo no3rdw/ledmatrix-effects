@@ -140,4 +140,7 @@ class MidiViz:
 			self.cleanupNotes()
 			self.lastCleanup = time.monotonic()
 	
-		
+	def handleRemote(self, key:str):
+		print(key)
+		if key == 'Enter':
+			self.resetNotes()

@@ -104,4 +104,8 @@ class Static:
 			if locals()['keys'][3]:
 				if (self.device.limitStep(self.device.buttonPause, self.device.lastButtonTick)):
 					self.bitmap.fill(0)
-			
+
+	def handleRemote(self, key:str):
+		print(key)
+		if key == 'Enter':
+			self.bitmap.fill(0)

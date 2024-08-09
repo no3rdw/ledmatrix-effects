@@ -2,15 +2,15 @@ from device import Device
 device = Device()
 from menu import Menu
 from static import Static
-from itysl import ITYSL
-from sky import Sky
+#from itysl import ITYSL
+#from sky import Sky
 from bounce import Bounce
-#from grow import Grow
+from grow import Grow
 #from midiviz import MidiViz
 #from worms import Worms
 import time
 
-effects = ['Static','Sky','ITYSL','Bounce']
+effects = ['Static','Grow','Bounce']
 
 if device.writeMode == True:
 	from settings import Settings
