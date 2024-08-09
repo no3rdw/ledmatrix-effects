@@ -9,7 +9,9 @@ import gc
 import displayio
 import colorsys
 import storage
+import busio
 from adafruit_bitmap_font import bitmap_font
+
 
 class Device:
 	def __init__(self):
@@ -26,6 +28,8 @@ class Device:
 		self.rtc = pcf8523.PCF8523(self.i2c)
 		# self.rtc = None
 
+		# receive IR data from CPX board
+		self.uart = busio.UART(None, board.RX, baudrate=38400, timeout=.05)
 
 		if hasattr(self.neokey, "pixels"):
 			self.neokey.pixels.brightness = 0
@@ -47,13 +51,15 @@ class Device:
 			width=32, height=32, bit_depth=6,
 			rgb_pins=[board.D6, board.D5, board.D9, board.D11, board.D10, board.D12],
 			addr_pins=[board.A5, board.A4, board.A3, board.A2],
-			clock_pin=board.D13, latch_pin=board.D0, output_enable_pin=board.D1)
+			clock_pin=board.D13, latch_pin=board.D4, output_enable_pin=board.D1)
 			
 		self.display = framebufferio.FramebufferDisplay(self.matrix, auto_refresh=True)
 		self.display.root_group = displayio.Group()
 		# FramebufferDisplay.brightness is non-functional with RGBMatrix 
 		# so we will implement our own brightness setting by modifying the level of all the HSL values
 		# and for imported .bmps, pass them through alphaPalette to modify all indexed colors
+
+		
 		
 		self.effect_group = displayio.Group()
 		self.display.root_group.append(self.effect_group)
@@ -64,7 +70,9 @@ class Device:
 		self.font.load_glyphs('1234567890QWERTYUIOPLKJHGFDSAZXCVBNMmnbvcxzasdfghjklpoiuytrewq&:')
 		self.lastButtonTick = 0
 		self.buttonPause = .20
-	
+
+		self.lastRead = 0
+
 	def cycleOption(self, optionList, selectedOption, direction):
 		currentIndex = optionList.index(selectedOption)
 		newIndex = currentIndex + direction
@@ -186,3 +194,13 @@ class Device:
 			return  8 * x * x * x * x 
 		else:
 			return 1 - math.pow(-2 * x + 2, 4) / 2
+		
+	def receiveIROverSerial(self):		
+		byte_read = self.uart.read(8)  # Read eight bytes over UART
+		
+		if byte_read:
+			print(byte_read)
+			self.uart.reset_input_buffer()
+		
+		self.lastRead = time.monotonic()
+		

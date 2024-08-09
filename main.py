@@ -1,15 +1,16 @@
 from device import Device
 device = Device()
 from menu import Menu
-#from static import Static
-#from itysl import ITYSL
-#from sky import Sky
-#from bounce import Bounce
-from grow import Grow
+from static import Static
+from itysl import ITYSL
+from sky import Sky
+from bounce import Bounce
+#from grow import Grow
 #from midiviz import MidiViz
 #from worms import Worms
+import time
 
-effects = ['Grow']
+effects = ['Static','Sky','ITYSL','Bounce']
 
 if device.writeMode == True:
 	from settings import Settings
@@ -23,6 +24,10 @@ device.changeEffect(device.saveData['startupEffect'])
 device.gc()
 
 while True:
+
+	if (device.limitStep(.2, device.lastRead)):
+		device.receiveIROverSerial()
+
 	if hasattr(device.neokey, "pixels"):
 		keys = device.neokey.get_keys() # using this is MUCH faster than referencing device.neokey[x] over and over 
 	

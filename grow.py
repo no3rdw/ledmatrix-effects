@@ -104,7 +104,6 @@ class Grow:
 		self.roots_tilegrid = displayio.TileGrid(self.rootsbitmap, pixel_shader=self.w)
 		self.rootsbitmap.fill(7)
 		self.worms_fg.append(self.roots_tilegrid)
-		
 
 		self.stemfade = [
 			[1,2,3,4],
@@ -194,6 +193,16 @@ class Grow:
 		self.wormtrailcolor = 1
 		self.roots = []
 		self.rootsbitmap.fill(7)
+		self.bonegroup = displayio.Group()
+
+		bone = vectorio.Polygon(pixel_shader=self.p, 
+								   	points=[(0,0),(2,2), (0,2)],
+									x=0,
+									y=0,
+									color_index=2)
+		self.bonegroup.append(bone)
+		self.worms_fg.append(self.bonegroup)
+
 
 		x = 0
 		while x < 25:
@@ -265,7 +274,7 @@ class Grow:
 		elif me['stage'] == 3:
 			pass
 
-	def removeRoot(self):
+	def removeRoot(	self):
 		self.roots = []
 		self.rootsbitmap.fill(7)
 
