@@ -22,3 +22,8 @@ class Effect:
 			# do stuff
 			
 			self.lastFrame = time.monotonic()
+
+	def handleRemote(self, key:str):
+		print(key)
+		if key == 'Enter':
+			pass

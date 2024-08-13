@@ -13,6 +13,7 @@ class ITYSL:
 			}
 		]
 		self.subEffects = ['Lines', 'Spiral', 'Circles']
+		self.lastFrame = 0
 
 		self.subEffectSwitch = time.monotonic()
 		self.selectedSwitchTime = 5 # seconds
@@ -45,7 +46,6 @@ class ITYSL:
 
 		device.effect_group.append(self.polygroup)
 
-		#self.lastFrame = 0
 		self.lastCircleCheck = 0
 		self.totalCircles = 0
 		self.maxsize = self.device.display.width * 2
@@ -260,97 +260,99 @@ class ITYSL:
 			return str(self.selectedSwitchTime) + 's'
 
 	def play(self):
-		if (self.selectedSwitchTime and self.device.limitStep(self.selectedSwitchTime, self.subEffectSwitch)):
-			# For spiral, we only advance to the next subeffect if the spiral animation completes
-			if self.subEffect == 'Spiral' and self.done == True and len(self.polygroup) == 0:
-				self.cycleSubEffect(1)
-				self.device.gc(1)
-				self.subEffectSwitch = time.monotonic()
-			# for the other effects, we can advance immediately
-			elif self.subEffect != 'Spiral':
-				self.cycleSubEffect(1)
-				self.device.gc(1)
-				self.subEffectSwitch = time.monotonic()
-		if self.device.menu_group.hidden and sum(locals()['keys']):
-			if locals()['keys'][3]:
-				if (self.device.limitStep(self.device.buttonPause, self.device.lastButtonTick)):
+		if (self.device.limitStep(.01, self.lastFrame)):
+			if (self.selectedSwitchTime and self.device.limitStep(self.selectedSwitchTime, self.subEffectSwitch)):
+				# For spiral, we only advance to the next subeffect if the spiral animation completes
+				if self.subEffect == 'Spiral' and self.done == True and len(self.polygroup) == 0:
 					self.cycleSubEffect(1)
+					self.device.gc(1)
 					self.subEffectSwitch = time.monotonic()
-					self.device.lastButtonTick = time.monotonic()
-		# -----------------------------------------------------------------------------------------
-		# -----------------------------------------------------------------------------------------
-		if self.subEffect == 'Lines':
-			if (self.device.limitStep(.2, self.lastLineCheck)):
-				if len(self.polygroup) < self.maxlines:
-					self.polygroup.append(self.addLine())
-					self.device.gc()
-				self.lastLineCheck = time.monotonic()
-			i = 0
-			while i < len(self.polys):
-				me = self.polys[i]
-				if me['pcomplete'] < 1 and me['stage'] == 0:
-					newx = round(me['pcomplete']*me['endx'])
-					newy = round(me['pcomplete']*me['endy'])
-					me['poly'].points = [(0,0),(0+me['width'],0),(newx+me['width'],newy),(newx,newy)]
-					me['pcomplete'] = me['pcomplete'] + me['speed']
-				elif me['pcomplete'] >= 1 and me['stage'] == 0:
-					me['stage'] = 1 #switching to pause
-					me['pcomplete'] = 0
-				elif me['stage'] == 1 and me['timer'] == 0:
-					me['timer'] = time.monotonic() + 1
-					#print('waiting until ', me['timer'])
-				elif me['stage'] == 1 and me['timer'] != 0 and me['timer'] - time.monotonic() < 0:
-					me['stage'] = 2 #switching to shrink
-				elif me['pcomplete'] < 1 and me['stage'] == 2:
-					newx = round(me['pcomplete']*me['endx'])
-					newy = round(me['pcomplete']*me['endy'])
-					me['poly'].points = [(newx,newy),(newx+me['width'],newy),(me['endx']+me['width'],me['endy']),(me['endx'],me['endy'])]
-					me['pcomplete'] = me['pcomplete'] + me['speed']
-				elif me['pcomplete'] >= 1 and me['stage'] == 2:
-					self.removePoly(i)
-				i = i + 1
-			self.lastFrame = time.monotonic()
-		# -----------------------------------------------------------------------------------------
-		# -----------------------------------------------------------------------------------------
-		elif self.subEffect == 'Circles':	
-			if (self.device.limitStep(.15, self.lastCircleCheck)):
-				if len(self.polygroup) < self.maxcircles:
-					self.polygroup.append(self.addCircle())
-					self.device.gc()
-					self.lastCircleCheck = time.monotonic()
-			i = 0
-			while i < len(self.polys):
-				me = self.polys[i]
-				me['poly'].radius = round(self.device.easeOutSine(me['pcomplete'] / self.maxsize) * self.maxsize)
-				me['pcomplete'] = me['pcomplete'] + 1
-				me['poly'].y = round(me['poly'].radius)-1
-				if me['poly'].radius >= self.maxsize:
-					self.removePoly(i)
-				i = i + 1
-		# -----------------------------------------------------------------------------------------
-		# -----------------------------------------------------------------------------------------
-		elif self.subEffect == 'Spiral':
-			if self.done != True:
-				if (self.device.limitStep(.11, self.lastLineCheck)):
-					self.polygroup.append(self.addLineToSpiral())
-					self.device.gc()
+				# for the other effects, we can advance immediately
+				elif self.subEffect != 'Spiral':
+					self.cycleSubEffect(1)
+					self.device.gc(1)
+					self.subEffectSwitch = time.monotonic()
+			if self.device.menu_group.hidden and sum(locals()['keys']):
+				if locals()['keys'][3]:
+					if (self.device.limitStep(self.device.buttonPause, self.device.lastButtonTick)):
+						self.cycleSubEffect(1)
+						self.subEffectSwitch = time.monotonic()
+						self.device.lastButtonTick = time.monotonic()
+			# -----------------------------------------------------------------------------------------
+			# -----------------------------------------------------------------------------------------
+			if self.subEffect == 'Lines':
+				if (self.device.limitStep(.2, self.lastLineCheck)):
+					if len(self.polygroup) < self.maxlines:
+						self.polygroup.append(self.addLine())
+						self.device.gc()
 					self.lastLineCheck = time.monotonic()
-			else:
-				if (self.device.limitStep(.11, self.lastLineCheck)):
-					if (len(self.polygroup)):
-						if(self.device.limitStep(.3, self.lastColorChange)):
-							for n in self.polygroup:
-								n.color_index = random.randrange(1,self.colorcount)
-							self.lastColorChange = time.monotonic()
-
-						if self.disappearDirection == 1:
-							self.removePoly()
-						else:
-							self.removePoly(len(self.polygroup)-1)
+				i = 0
+				while i < len(self.polys):
+					me = self.polys[i]
+					if me['pcomplete'] < 1 and me['stage'] == 0:
+						newx = round(me['pcomplete']*me['endx'])
+						newy = round(me['pcomplete']*me['endy'])
+						me['poly'].points = [(0,0),(0+me['width'],0),(newx+me['width'],newy),(newx,newy)]
+						me['pcomplete'] = me['pcomplete'] + me['speed']
+					elif me['pcomplete'] >= 1 and me['stage'] == 0:
+						me['stage'] = 1 #switching to pause
+						me['pcomplete'] = 0
+					elif me['stage'] == 1 and me['timer'] == 0:
+						me['timer'] = time.monotonic() + 1
+						#print('waiting until ', me['timer'])
+					elif me['stage'] == 1 and me['timer'] != 0 and me['timer'] - time.monotonic() < 0:
+						me['stage'] = 2 #switching to shrink
+					elif me['pcomplete'] < 1 and me['stage'] == 2:
+						newx = round(me['pcomplete']*me['endx'])
+						newy = round(me['pcomplete']*me['endy'])
+						me['poly'].points = [(newx,newy),(newx+me['width'],newy),(me['endx']+me['width'],me['endy']),(me['endx'],me['endy'])]
+						me['pcomplete'] = me['pcomplete'] + me['speed']
+					elif me['pcomplete'] >= 1 and me['stage'] == 2:
+						self.removePoly(i)
+					i = i + 1
+				self.lastFrame = time.monotonic()
+			# -----------------------------------------------------------------------------------------
+			# -----------------------------------------------------------------------------------------
+			elif self.subEffect == 'Circles':	
+				if (self.device.limitStep(.15, self.lastCircleCheck)):
+					if len(self.polygroup) < self.maxcircles:
+						self.polygroup.append(self.addCircle())
+						self.device.gc()
+						self.lastCircleCheck = time.monotonic()
+				i = 0
+				while i < len(self.polys):
+					me = self.polys[i]
+					me['poly'].radius = round(self.device.easeOutSine(me['pcomplete'] / self.maxsize) * self.maxsize)
+					me['pcomplete'] = me['pcomplete'] + 1
+					me['poly'].y = round(me['poly'].radius)-1
+					if me['poly'].radius >= self.maxsize:
+						self.removePoly(i)
+					i = i + 1
+			# -----------------------------------------------------------------------------------------
+			# -----------------------------------------------------------------------------------------
+			elif self.subEffect == 'Spiral':
+				if self.done != True:
+					if (self.device.limitStep(.11, self.lastLineCheck)):
+						self.polygroup.append(self.addLineToSpiral())
 						self.device.gc()
 						self.lastLineCheck = time.monotonic()
-					else:
-						self.initSpiral(device=self.device)
+				else:
+					if (self.device.limitStep(.11, self.lastLineCheck)):
+						if (len(self.polygroup)):
+							if(self.device.limitStep(.3, self.lastColorChange)):
+								for n in self.polygroup:
+									n.color_index = random.randrange(1,self.colorcount)
+								self.lastColorChange = time.monotonic()
+
+							if self.disappearDirection == 1:
+								self.removePoly()
+							else:
+								self.removePoly(len(self.polygroup)-1)
+							self.device.gc()
+							self.lastLineCheck = time.monotonic()
+						else:
+							self.initSpiral(device=self.device)
+			self.lastFrame = time.monotonic()
 
 	def handleRemote(self, key:str):
 		print(key)
