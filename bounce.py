@@ -165,7 +165,7 @@ class Effect(Effect):
 			self.cards.append(self.buildCard())
 			self.lastCardDrop = time.monotonic()
 
-		if (self.device.limitStep(.03, self.lastFrame)):
+		if (self.device.limitStep(.02, self.lastFrame)):
 			c = 0
 			while c < len(self.cards):
 				self.moveCard(self.cards[c])
@@ -183,4 +183,7 @@ class Effect(Effect):
 	def handleRemote(self, key:str):
 		if key == 'Enter':
 			self.__init__(device=self.device, style=self.selectedStyle)	
-		print(key)
+		elif key == 'VolDown':
+			self.setStyle(-1)
+		elif key == 'VolUp':
+			self.setStyle(1)

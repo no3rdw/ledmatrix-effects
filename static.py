@@ -106,6 +106,9 @@ class Effect(Effect):
 					self.bitmap.fill(0)
 
 	def handleRemote(self, key:str):
-		print(key)
 		if key == 'Enter':
 			self.bitmap.fill(0)
+		elif key == 'VolDown':
+			self.setPalette(-1)
+		elif key == 'VolUp':
+			self.setPalette(1)
