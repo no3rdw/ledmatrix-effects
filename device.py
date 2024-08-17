@@ -213,7 +213,8 @@ class Device:
 		self.lastRead = time.monotonic()
 
 	def processRemoteKeypress(self, code:str):
-		self.neokey.pixels.brightness = .5
+		if hasattr(self.neokey, "pixels"):
+			self.neokey.pixels.brightness = .5
 		table = (("00FD00FF", "VolDown"),
 		   		("00FD807F", "PlayPause"),
 				("00FD40BF", "VolUp"),

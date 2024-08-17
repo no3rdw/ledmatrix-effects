@@ -42,7 +42,8 @@ while True:
 	device.effect.play()
 
 	if device.limitStep(device.buttonPause, device.lastButtonTick):
-		device.neokey.pixels.brightness = 0
+		if hasattr(device.neokey, "pixels"):
+			device.neokey.pixels.brightness = 0
 
 	if device.overlay_group.hidden == False and device.limitStep(device.overlayDelay, device.lastOverlayUpdate):
 		device.overlay_group.hidden = True
