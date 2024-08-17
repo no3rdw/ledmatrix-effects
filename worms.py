@@ -1,10 +1,9 @@
 import time, random, displayio, vectorio
 from effect import Effect
 
-class Worms(Effect):
+class Effect(Effect):
 	def __init__(self, device:Device):
-		self.name = type(self).__name__
-		self.displayname = 'Worms'
+		self.name = 'Worms'
 		self.device = locals()['device']
 
 		device.clearDisplayGroup(device.effect_group)

@@ -1,7 +1,7 @@
 import time, vectorio, displayio, random, math, bitmaptools
 from effect import Effect
 
-class Grow(Effect):
+class Effect(Effect):
 
 	def setDaySpeed(self, direction:int):
 		self.daycyclespeed = self.device.cycleOption([1,2,4,8,10], self.daycyclespeed, direction)
@@ -10,8 +10,7 @@ class Grow(Effect):
 		return str(self.daycyclespeed)
 
 	def __init__(self, device:Device):
-		self.name = type(self).__name__
-		self.displayname = 'Grow'
+		self.name = 'Grow'
 		self.device = locals()['device']
 
 		device.clearDisplayGroup(device.effect_group)

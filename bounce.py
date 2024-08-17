@@ -3,10 +3,9 @@ import adafruit_display_text.label
 import bitmaptools
 from effect import Effect
 
-class Bounce(Effect):
+class Effect(Effect):
 	def __init__(self, device:Device, style:str='Cards'):
-		self.name = type(self).__name__
-		self.displayname = 'Bounce'
+		self.name = 'Bounce'
 		self.device = locals()['device']
 
 		device.clearDisplayGroup(device.effect_group)

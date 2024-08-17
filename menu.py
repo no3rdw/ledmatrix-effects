@@ -1,10 +1,9 @@
 import adafruit_display_text.label
 import time
+from effect import Effect
 
-class Menu:
-
+class Effect(Effect):
 	def __init__(self, device:Device):
-		self.name = 'Menu'
 		self.device = device
 
 		self.menu = {}

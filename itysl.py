@@ -1,10 +1,9 @@
 import displayio, random, time, vectorio, math
 from effect import Effect
 
-class ITYSL(Effect):
+class Effect(Effect):
 	def __init__(self, device:Device):
-		self.name = type(self).__name__
-		self.displayname = 'ITYSL'
+		self.name = 'ITYSL'
 		self.device = device
 		self.menu = [
 			{

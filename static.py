@@ -1,10 +1,9 @@
 import displayio, random
 from effect import Effect
 
-class Static(Effect):
+class Effect(Effect):
 	def __init__(self, device:Device, palette:int=0, maxchanged:int=10):
-		self.name = type(self).__name__
-		self.displayname = 'Static'
+		self.name = 'Static'
 		self.device = device
 
 		self.speed = .05

@@ -1,11 +1,10 @@
 import adafruit_display_text.label
-import time, json, storage
+import time
 from effect import Effect
 
-class Settings(Effect):
+class Effect(Effect):
 	def __init__(self, device:Device):
-		self.name = type(self).__name__
-		self.displayname = 'Settings'
+		self.name = 'Settings'
 		self.device = locals()['device']
 
 		self.clockline1 = adafruit_display_text.label.Label(
@@ -42,7 +41,7 @@ class Settings(Effect):
 			},
 			{
 				'label': 'Save',
-				'set': lambda: self.device.writeData(self.device.settings, 'settings.json'),
+				'set': self.saveSettings,
 				'get': lambda: '<Press>'
 			}
 		]
@@ -112,3 +111,6 @@ class Settings(Effect):
 
 	def handleRemote(self, key:str):
 		print(key)
+
+	def saveSettings(self, direction:int=0):
+		self.device.writeData(self.device.settings, 'settings.json')

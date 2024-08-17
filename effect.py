@@ -3,8 +3,7 @@ import time
 
 class Effect:
 	def __init__(self, device:Device):
-		self.name = type(self).__name__
-		self.displayname = 'Effect'
+		self.name = 'Effect'
 		self.device = locals()['device']
 
 		#device.clearDisplayGroup(device.effect_group)

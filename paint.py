@@ -1,11 +1,10 @@
 import time, displayio, vectorio
 from effect import Effect
 
-class Paint(Effect):
+class Effect(Effect):
 	def __init__(self, device:Device):
-		self.name = type(self).__name__
-		self.displayname = 'Paint'
-		self.device = locals()['device']
+		self.name = 'Paint'
+		self.device = device
 
 		device.clearDisplayGroup(device.effect_group)
 		self.fillbg = 0

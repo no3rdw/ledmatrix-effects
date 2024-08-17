@@ -1,28 +1,13 @@
 from device import Device
 device = Device()
-from menu import Menu
-from static import Static
-from itysl import ITYSL
-from sky import Sky
-from bounce import Bounce
-from midiviz import MidiViz
-from worms import Worms
-from paint import Paint
-#from grow import Grow
-#import time
 
-effects = ['Paint','Static','Sky','Worms','ITYSL','MidiViz','Bounce']
+effects = ['Paint','Static','Bounce','Settings']
+for e in effects:
+	locals()[e] = __import__(str.lower(e)).Effect
+	device.gc()
 
-if device.writeMode == True:
-	from settings import Settings
-	effects.append('Settings')
-
-# https://learn.adafruit.com/circuitpython-display-support-using-displayio/library-overview
-
-menu = Menu(device)
+menu = __import__('menu').Effect(device)
 device.changeEffect(device.settings['startupEffect'])
-
-device.gc()
 
 while True:
 

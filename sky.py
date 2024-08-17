@@ -2,7 +2,7 @@ import time, displayio, random
 import adafruit_display_text.label
 from effect import Effect
 
-class Sky(Effect):
+class Effect(Effect):
 			
 	def initPhrase(self):
 		return self.device.getTime()
@@ -61,13 +61,12 @@ class Sky(Effect):
 		me['type'] = 'plane'
 		me['delay'] = random.randrange(10,30)
 		me['done'] = False
-		print('init plane complete')
+		#print('init plane complete')
 		self.device.gc(1)
 		return me
 
 	def __init__(self, device:Device):
-		self.name = type(self).__name__
-		self.displayname = 'Sky'
+		self.name = 'Sky'
 		self.device = locals()['device']
 
 		p = displayio.Palette(3)

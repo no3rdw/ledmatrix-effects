@@ -21,7 +21,7 @@ class Device:
 
 		# If no NeoKey module, replace the following line with the line below
 		self.neokey = NeoKey1x4(self.i2c)
-		# self.neokey = None
+		#self.neokey = None
 
 		# If no RTC module, replace the following line with the line below
 		self.rtc = pcf8523.PCF8523(self.i2c)
@@ -115,7 +115,7 @@ class Device:
 			return "00:00:00"
 
 	def getEffectName(self):
-		return self.effect.displayname
+		return self.effect.name
 
 	def resetKeypixel(self, n:int):
 		if hasattr(self.neokey, "pixels"):
