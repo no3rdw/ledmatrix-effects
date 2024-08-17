@@ -41,7 +41,7 @@ class Settings:
 			},
 			{
 				'label': 'Save',
-				'set': lamda: self.device.writeData(self.device.settings, 'settings.json'),
+				'set': lambda: self.device.writeData(self.device.settings, 'settings.json'),
 				'get': lambda: '<Press>'
 			}
 		]
