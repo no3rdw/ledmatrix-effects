@@ -1,6 +1,6 @@
 import board, time, json, math
 from digitalio import DigitalInOut, Pull
-#from adafruit_neokey.neokey1x4 import NeoKey1x4
+from adafruit_neokey.neokey1x4 import NeoKey1x4
 import pcf8523
 import rgbmatrix
 import displayio
@@ -21,8 +21,8 @@ class Device:
 		################### Hardware Config ##################
 
 		# If no NeoKey module, replace the following line with the line below
-		#self.neokey = NeoKey1x4(self.i2c)
-		self.neokey = None
+		self.neokey = NeoKey1x4(self.i2c)
+		# self.neokey = None
 
 		# If no RTC module, replace the following line with the line below
 		self.rtc = pcf8523.PCF8523(self.i2c)
@@ -37,18 +37,15 @@ class Device:
 
 		if hasattr(self.neokey, "pixels"):
 			self.neokey.pixels.brightness = 0
+			self.neokey.pixels[0] = (255,0,0)
+			self.neokey.pixels[1] = (255,0,0)
+			self.neokey.pixels[2] = (255,0,0)
+			self.neokey.pixels[3] = (255,0,0)
 		else:
 			locals()['keys'] = [0,0,0,0]
 
 		self.effect = None
-
-		try:
-			self.writeMode = not storage.getmount("/").readonly
-			f = open('data.json','r')
-			self.saveData = json.loads(f.read())
-			f.close()
-		except:
-			self.saveData = json.loads('{"brightness":1.0,"startupEffect":"Static"}') #defaults
+		self.settings = self.loadData('settings.json')
 
 		##### LED Matrix setup
 		self.matrix = rgbmatrix.RGBMatrix(
@@ -69,11 +66,16 @@ class Device:
 		self.display.root_group.append(self.effect_group)
 		self.menu_group = displayio.Group()
 		self.display.root_group.append(self.menu_group)
+		self.overlay_group = displayio.Group()
+		self.display.root_group.append(self.overlay_group)
 
 		self.font = bitmap_font.load_font("lib/fonts/04B_03__6pt.bdf")
 		self.font.load_glyphs('1234567890QWERTYUIOPLKJHGFDSAZXCVBNMmnbvcxzasdfghjklpoiuytrewq&:')
 		self.lastButtonTick = 0
 		self.buttonPause = .20
+
+		self.overlayDelay = .7
+		self.lastOverlayUpdate = 0
 
 		self.lastRead = 0
 
@@ -91,7 +93,7 @@ class Device:
 		self.changeEffect(self.cycleOption(locals()['effects'], self.effect.name, direction))
 
 	def cycleBrightness(self, direction:int):
-		self.saveData['brightness'] = self.cycleOption([.2,.4,.6,.8,1], self.saveData['brightness'], direction)
+		self.settings['brightness'] = self.cycleOption([.2,.4,.6,.8,1], self.settings['brightness'], direction)
 
 	def changeEffect(self, e:str):
 		if not hasattr(self.effect, 'name') or e != self.effect.name:
@@ -140,7 +142,7 @@ class Device:
 
 	def hls(self, h:float, l:float, s:float, b:float=None):
 		if not b:
-			b = self.saveData['brightness']
+			b = self.settings['brightness']
 		if h == 0: h = .0001
 		elif h > 1: h = 1
 		if l == 0: l = .0001
@@ -211,6 +213,7 @@ class Device:
 		self.lastRead = time.monotonic()
 
 	def processRemoteKeypress(self, code:str):
+		self.neokey.pixels.brightness = .5
 		table = (("00FD00FF", "VolDown"),
 		   		("00FD807F", "PlayPause"),
 				("00FD40BF", "VolUp"),
@@ -241,7 +244,30 @@ class Device:
 			else:
 				if key == 'Setup':
 					locals()['menu'].showMenu()
-				elif key == 'StopMode':
+				elif key == 'PlayPause':
 					self.cycleEffect(1)
 				else:
 					self.effect.handleRemote(key)
+			self.setLastButtonTick()
+
+	def loadData(self, filename:str):
+		try:
+			self.writeMode = not storage.getmount("/").readonly
+			f = open(filename,'r')
+			var = json.loads(f.read())
+			f.close()
+		except:
+			if(filename == 'settings.json'):
+				# load defaults so device doesn't error if settings.json is not present
+				var = json.loads('{"brightness":1.0,"startupEffect":"Static"}')
+			else:
+				var = {}
+		return var
+
+	def writeData(self, var, filename:str):
+		if self.writeMode == True:
+			f = open(filename,'w') # 'w' is truncate write
+			f.write(json.dumps(var))
+			f.close()
+		else:
+			print(json.dumps(var))

@@ -48,6 +48,13 @@ class Menu:
 		device.menu_group.append(self.optionlabel)
 		# start hidden
 		device.menu_group.hidden = 1
+
+		self.overlay = adafruit_display_text.label.Label(
+			device.font, color=self.menucolor, background_color=0x000000, text='Overlay', line_spacing=1,
+			label_direction='LTR',anchor_point=[0,1],anchored_position=[1,31], background_tight=True)
+		
+		device.overlay_group.append(self.overlay)
+		device.overlay_group.hidden = True
 		
 	def showMenu(self):
 		# call showMenu AFTER initial effect is loaded
@@ -138,3 +145,8 @@ class Menu:
 			self.changeOption(-1)
 		elif key == 'Right' or key == 'Enter':
 			self.changeOption(1)
+
+	def showOverlay(self, message:str):
+		self.device.lastOverlayUpdate = time.monotonic()
+		self.overlay.text = message
+		self.device.overlay_group.hidden = False

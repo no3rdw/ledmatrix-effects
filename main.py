@@ -20,7 +20,7 @@ if device.writeMode == True:
 # https://learn.adafruit.com/circuitpython-display-support-using-displayio/library-overview
 
 menu = Menu(device)
-device.changeEffect(device.saveData['startupEffect'])
+device.changeEffect(device.settings['startupEffect'])
 
 device.gc()
 
@@ -40,3 +40,9 @@ while True:
 		menu.play()
 
 	device.effect.play()
+
+	if device.limitStep(device.buttonPause, device.lastButtonTick):
+		device.neokey.pixels.brightness = 0
+
+	if device.overlay_group.hidden == False and device.limitStep(device.overlayDelay, device.lastOverlayUpdate):
+		device.overlay_group.hidden = True
