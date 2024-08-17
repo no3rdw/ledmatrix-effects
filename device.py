@@ -1,5 +1,4 @@
 import board, time, json, math
-from digitalio import DigitalInOut, Pull
 from adafruit_neokey.neokey1x4 import NeoKey1x4
 import pcf8523
 import rgbmatrix

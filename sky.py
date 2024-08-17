@@ -1,7 +1,8 @@
 import time, displayio, random
 import adafruit_display_text.label
+from effect import Effect
 
-class Sky:
+class Sky(Effect):
 			
 	def initPhrase(self):
 		return self.device.getTime()

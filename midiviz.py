@@ -1,13 +1,14 @@
 import time, random, vectorio, displayio, math
 import usb_midi
 import adafruit_midi
+from effect import Effect
 
 from adafruit_midi.note_off import NoteOff
 from adafruit_midi.note_on import NoteOn
 from adafruit_midi.start import Start
 from adafruit_midi.stop import Stop
 
-class MidiViz:
+class MidiViz(Effect):
 	def __init__(self, device:Device):
 		self.name = type(self).__name__
 		self.displayname = 'MidiViz'

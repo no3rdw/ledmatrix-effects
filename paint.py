@@ -1,12 +1,7 @@
 import time, displayio, vectorio
-# add menu items: 
-# fillbg (scroll for colors)
-# save 
-# delete
-# play (speed)
+from effect import Effect
 
-
-class Paint:
+class Paint(Effect):
 	def __init__(self, device:Device):
 		self.name = type(self).__name__
 		self.displayname = 'Paint'

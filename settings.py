@@ -1,7 +1,8 @@
 import adafruit_display_text.label
 import time, json, storage
+from effect import Effect
 
-class Settings:
+class Settings(Effect):
 	def __init__(self, device:Device):
 		self.name = type(self).__name__
 		self.displayname = 'Settings'
