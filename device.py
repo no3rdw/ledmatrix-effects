@@ -20,8 +20,8 @@ class Device:
 		################### Hardware Config ##################
 
 		# If no NeoKey module, replace the following line with the line below
-		self.neokey = NeoKey1x4(self.i2c)
-		#self.neokey = None
+		#self.neokey = NeoKey1x4(self.i2c)
+		self.neokey = None
 
 		# If no RTC module, replace the following line with the line below
 		self.rtc = pcf8523.PCF8523(self.i2c)
@@ -69,7 +69,7 @@ class Device:
 		self.display.root_group.append(self.overlay_group)
 
 		self.font = bitmap_font.load_font("lib/fonts/04B_03__6pt.bdf")
-		self.font.load_glyphs('1234567890QWERTYUIOPLKJHGFDSAZXCVBNMmnbvcxzasdfghjklpoiuytrewq&:')
+		self.font.load_glyphs('1234567890QWERTYUIOPLKJHGFDSAZXCVBNMmnbvcxzasdfghjklpoiuytrewq&:<>')
 		self.lastButtonTick = 0
 		self.buttonPause = .20
 

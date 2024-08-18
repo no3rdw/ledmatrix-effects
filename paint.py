@@ -1,4 +1,4 @@
-import time, displayio, vectorio
+import time, displayio, vectorio, os, random
 from effect import Effect
 
 class Effect(Effect):
@@ -8,8 +8,6 @@ class Effect(Effect):
 
 		device.clearDisplayGroup(device.effect_group)
 		self.fillbg = 0
-
-		self.paintData = self.device.loadData('paint.json')
 
 		self.menu = [
 			{
@@ -22,20 +20,19 @@ class Effect(Effect):
 				'get': lambda: '<Press>'
 			},{
 				'label': 'Load',
-				'set': lambda d: (self.load(self.device.cycleOption(self.saveslots, self.saveslot, d))),
-				'get': lambda: 'Save' + str(self.saveslot)
+				'set': lambda d: (self.loadFile(self.safeCycleFilenames(d))),
+				'get': lambda: str(self.currentSaveFilename)
 			},{
-				'label': 'SaveAll',
-				'set': self.saveAllToDisk,
+				'label': 'Save',
+				'set': self.saveCurrentToDisk,
 				'get': lambda: '<Press>'
 			},{
 				'label': 'PlaySpd',
 				'set': self.setPlayspeed,
 				'get': self.getPlayspeed
-			}
-			
+			}	
 		]
-		self.lastFrame = 0
+	
 
 		self.p = displayio.Palette(10)
 		self.p[0] = device.hls(0, 0, 0) # black
@@ -51,30 +48,28 @@ class Effect(Effect):
 
 		self.caretPos = [0,0]
 		self.selectedColor = 1
-		self.scale = 4
-
-		self.undo = []
+		
 
 		# Create a bitmap with the number of colors in the selected palette
-		self.bitmap = displayio.Bitmap(round(device.display.width/self.scale), round(device.display.height/self.scale), 9)
+		self.bitmap = displayio.Bitmap(device.display.width, device.display.height, 9)
+		self.nextframe = displayio.Bitmap(device.display.width, device.display.height, 9)
+		self.undo = displayio.Bitmap(device.display.width, device.display.height, 9)
 		self.bitmapgrid = displayio.TileGrid(self.bitmap, pixel_shader=self.p)
 
-		self.caret = vectorio.Polygon(pixel_shader=self.p, points=[(0,0),(0,self.scale),(self.scale,self.scale),(self.scale,0)], x=0, y=0, color_index=1)
-		self.window = vectorio.Polygon(pixel_shader=self.p, points=[(1,1),(3,1),(3,3),(1,3)], x=0, y=0, color_index=0)
-		self.window.hidden = True
-
+		self.caret = vectorio.Polygon(pixel_shader=self.p, points=[(0,0),(0,4),(4,0)], x=0, y=0, color_index=1)
+		self.marker = vectorio.Polygon(pixel_shader=self.p, points=[(0,0),(4,0),(4,4),(0,4)], x=0, y=0, color_index=9)
 		self.caretGroup = displayio.Group()
 		self.caretGroup.hidden = True
 		self.caretGroup.append(self.caret)
-		self.caretGroup.append(self.window)
+		self.caretGroup.append(self.marker)
 		
+		self.setScale(4)
 		self.painting = False
 		self.playspeed = 0
 
 		# Create a TileGrid using the Bitmap and Palette
 	
 		self.paintGroup = displayio.Group()
-		self.paintGroup.scale = 4
 
 		device.clearDisplayGroup(device.effect_group)
 		self.paintGroup.append(self.bitmapgrid)
@@ -83,127 +78,168 @@ class Effect(Effect):
 
 		self.lastblink = 0
 		self.lastload = 0
-		self.saveslot = 0
 		self.blinkstate = False
 
-		self.load(self.saveslot)
+		self.allSaveFilenames = self.getAllFilenames()
+		self.loadFile(self.allSaveFilenames[0])
+		
+	def getAllFilenames(self):
+		filenames = [filename.split('.')[0] for filename in os.listdir('/paintsaves/')]
+		return sorted(filenames)
 
 	def play(self):
 		if (self.device.limitStep(.25, self.lastblink)):
 			if self.blinkstate == False:
 				self.caret.color_index = self.selectedColor
+				self.marker.color_index = self.selectedColor
 				self.blinkstate = True
 			else:
-				self.caret.color_index = 9
+				if self.selectedColor == 9:
+					self.caret.color_index = 0
+					self.marker.color_index = 0
+				else:
+					self.caret.color_index = 9
+					self.marker.color_index = 9
 				self.blinkstate = False
 			self.lastblink = time.monotonic()
 
-		if (self.device.limitStep(.1, self.lastFrame)):
-			self.caretGroup.x = self.caretPos[0]
-			self.caretGroup.y = self.caretPos[1]
-			self.lastFrame = time.monotonic()
-
 		if (self.playspeed != 0 and self.device.limitStep(self.playspeed, self.lastload)):
-			self.load(self.device.cycleOption(self.saveslots, self.saveslot, 1))
+			self.loadFile(self.safeCycleFilenames(1))
 			
 			self.lastload = time.monotonic()
 		elif self.playspeed == 0:
 			self.lastload = time.monotonic()
 
+	def safeCycleFilenames(self, direction:int=1):
+		# wrapper for cycleOption to account for unsaved new image
+		# if we are on an unsaved new image and are abandoning it, skip to either the last or first saved image
+		if self.currentSaveFilename == 'Unnamed' and direction == -1:
+			self.currentSaveFilename = self.allSaveFilenames[len(self.allSaveFilenames)-1]
+		elif self.currentSaveFilename == 'Unnamed' and direction == 1:
+			self.currentSaveFilename = self.allSaveFilenames[0]
+		else:
+			self.currentSaveFilename = self.device.cycleOption(self.allSaveFilenames, self.currentSaveFilename, direction)
+		return self.currentSaveFilename
+
 	def handleRemote(self, key:str):
-		#print(key)
 		if key == 'PlayPause':
 			pass
 		elif key == 'VolDown':
-			self.saveCurrentToMem()
-			self.load(self.device.cycleOption(self.saveslots, self.saveslot, -1))
-			locals()['menu'].showOverlay('Save' + str(self.saveslot))
+			self.loadFile(self.safeCycleFilenames(-1))
+			locals()['menu'].showOverlay(self.currentSaveFilename)
 		elif key == 'VolUp':
-			self.saveCurrentToMem()
-			self.load(self.device.cycleOption(self.saveslots, self.saveslot, 1))
-			locals()['menu'].showOverlay('Save' + str(self.saveslot))
-		elif key == 'Left':
-			self.caretPos[0] = [lambda: 7, lambda: self.caretPos[0] - 1][self.caretPos[0] > 0]()
-			self.paint()
-		elif key == 'Right':
-			self.caretPos[0] = [lambda: 0, lambda: self.caretPos[0] + 1][self.caretPos[0] < 7]()
-			self.paint()
-		elif key == 'Up':
-			self.caretPos[1] = [lambda: 7, lambda: self.caretPos[1] - 1][self.caretPos[1] > 0]()
-			self.paint()
-		elif key == 'Down':
-			self.caretPos[1] = [lambda: 0, lambda: self.caretPos[1] + 1][self.caretPos[1] < 7]()
-			self.paint()
-		elif key == 'Back':
-			if len(self.undo) > 0:
+			self.loadFile(self.safeCycleFilenames(1))
+			locals()['menu'].showOverlay(self.currentSaveFilename)
+		else:
+			self.caretGroup.hidden = False # show cursor on all other button presses
+			if key == 'Left':
+				self.caretPos[0] = [lambda: self.device.display.width-self.scale, lambda: self.caretPos[0] - self.scale][self.caretPos[0] > 0]()
+				self.paint()
+			elif key == 'Right':
+				self.caretPos[0] = [lambda: 0, lambda: self.caretPos[0] + self.scale][self.caretPos[0] + self.scale < self.device.display.width]()
+				self.paint()
+			elif key == 'Up':
+				self.caretPos[1] = [lambda: self.device.display.height-self.scale, lambda: self.caretPos[1] - self.scale][self.caretPos[1] > 0]()
+				self.paint()
+			elif key == 'Down':
+				self.caretPos[1] = [lambda: 0, lambda: self.caretPos[1] + self.scale][self.caretPos[1] + self.scale < self.device.display.height]()
+				self.paint()
+			elif key == 'Back':
 				self.switchPainting(False)
-				self.bitmap[self.undo[0][0]] = self.undo[0][1]
-				self.undo.pop(0)
-		elif self.caretGroup.hidden == True:
-			self.switchCaretVisible(False)
-			if len(key) == 1:
+				self.bitmap.blit(0,0,self.undo)
+			elif len(key) == 1:
 				self.selectedColor = int(key)
 				self.caret.color_index = int(key)
-		elif len(key) == 1:
-			self.selectedColor = int(key)
-			self.caret.color_index = int(key)
-			self.paint()
-		elif key == 'Enter' and self.painting == True:
-			self.switchPainting(False)
-		elif key == 'Enter' and self.painting == False:
-			self.switchPainting(True)
-			self.paint()
-		elif key == 'StopMode':
-			self.switchCaretVisible(True)
-		
+				self.paint()
+			elif key == 'Enter' and self.painting == True:
+				self.switchPainting(False)
+			elif key == 'Enter' and self.painting == False:
+				self.switchPainting(True)
+				self.paint()
+			elif key == 'StopMode':
+				self.setScale(self.device.cycleOption([4,2,1], self.scale, 1))
+			
 	def paint(self):
+		self.caretGroup.x = self.caretPos[0]
+		self.caretGroup.y = self.caretPos[1]
 		if self.painting:
-			self.undo.insert(0, [self.caretPos[:], self.bitmap[self.caretPos]])
-			self.bitmap[self.caretPos] = self.selectedColor
-
+			self.undo.blit(0,0,self.bitmap)
+			y=0
+			while y<self.scale:
+				x=0
+				while x<self.scale:
+					self.bitmap[(self.caretPos[0]+x,self.caretPos[1]+y)] = self.selectedColor
+					x += 1
+				y+=1
+			
 	def switchPainting(self, b):
 		if b:
 			self.painting = True
-			self.window.hidden = False
+			self.marker.hidden = False
+			self.caret.hidden = True
 		else:
 			self.painting = False
-			self.window.hidden = True
+			self.marker.hidden = True
+			self.caret.hidden = False
 
-	def switchCaretVisible(self, b):
-		if b:
-			self.caretGroup.hidden = True
-			self.switchPainting(False)
-		else:
-			self.caretGroup.hidden = False
+	def setScale(self, scale):
+		self.scale = scale
+		self.caretPos[0] = self.caretPos[0] - (self.caretPos[0] % scale)
+		self.caretPos[1] = self.caretPos[1] - (self.caretPos[1] % scale)
+		if self.caretPos[0] > self.device.display.width-1:
+			self.caretPos[0] = 0
+		if self.caretPos[1] > self.device.display.height-1:
+			self.caretPos[1] = 0
+		self.caretGroup.x = self.caretPos[0]
+		self.caretGroup.y = self.caretPos[1]
+		self.caret.points = [(0,0),(0,scale),(scale,0)]
+		self.marker.points = [(0,0),(scale,0),(scale,scale),(0,scale)]
 
-	def load(self, saveslot:str):
-		self.device.gc(1)
+	def loadFile(self, filename):
+		self.currentSaveFilename = filename
+		saveContents = self.device.loadData('/paintsaves/'+self.currentSaveFilename+'.json')
+		self.loadSaveContents(saveContents)
+
+	def loadSaveContents(self, save):
 		self.switchPainting(False)
-		self.getSaveSlots()
 		n = 0
-		for y in range(0, 8):
-			for x in range(0, 8):
-				self.bitmap[x,y] = int(self.paintData['paintSaves'][saveslot][n])
+		for y in range(0, self.device.display.height):
+			for x in range(0, self.device.display.width):
+				self.nextframe[x,y] = int(save['data'][n])
 				n += 1
-		self.saveslot = saveslot
-		self.undo = []
+			
+		self.bitmap.blit(0,0,self.nextframe)
+		self.undo.blit(0,0,self.nextframe)
+		self.caretGroup.hidden = True
+		self.lastload = time.monotonic()
+		self.device.gc(1)
 
-	def saveCurrentToMem(self):
+	def saveCurrentToDisk(self, direction:int=0):
 		output = ""
-		for y in range(0, 8):
-			for x in range(0, 8):
+		for y in range(0, self.device.display.height):
+			for x in range(0, self.device.display.width):
 				output = output + str(self.bitmap[x,y])
-		self.paintData['paintSaves'][self.saveslot] = output
-		
-	def saveAllToDisk(self, direction:int=0):
-		self.saveCurrentToMem()
-		self.device.writeData(self.paintData, 'paint.json')
+		newData = {"data": output}
+
+		if self.currentSaveFilename == 'Unnamed':
+			new = True
+			self.currentSaveFilename = str(int(self.allSaveFilenames[len(self.allSaveFilenames)-1])+1)
+		else:
+			new = False
+		print(self.currentSaveFilename)
+		self.device.writeData(newData, '/paintsaves/'+self.currentSaveFilename+'.json')
+
+		if new:
+			self.allSaveFilenames = self.getAllFilenames()
+			print(self.allSaveFilenames)
+
+		locals()['menu'].hideMenu()
 	
 	def setNew(self, direction:int=0):
-		newID = len(self.paintData['paintSaves'])
-		self.paintData['paintSaves'].append('0'*64)
-		self.load(newID)
 		locals()['menu'].hideMenu()
+		self.currentSaveFilename = "Unnamed"
+		newSave = {"data":'0'*(self.device.display.height*self.device.display.width)}
+		self.loadSaveContents(newSave)
 
 	def getFillBackground(self):
 		return str(self.fillbg)
@@ -213,10 +249,8 @@ class Effect(Effect):
 		self.bitmap.fill(self.fillbg)
 
 	def setPlayspeed(self, direction:int):
-		self.playspeed = self.device.cycleOption([0,.25,.5,1,5,10,30,60], self.playspeed, direction)
+		self.playspeed = self.device.cycleOption([0,.5,1,5,10,30,60], self.playspeed, direction)
 
 	def getPlayspeed(self):
 		return str(self.playspeed) + 'sec'
 	
-	def getSaveSlots(self):
-		self.saveslots = list(range(len(self.paintData['paintSaves'])))
