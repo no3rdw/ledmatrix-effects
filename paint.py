@@ -1,4 +1,4 @@
-import time, displayio, vectorio, os, random
+import time, displayio, vectorio, os
 from effect import Effect
 
 class Effect(Effect):
