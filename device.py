@@ -259,7 +259,7 @@ class Device:
 		except:
 			if(filename == 'settings.json'):
 				# load defaults so device doesn't error if settings.json is not present
-				var = json.loads('{"brightness":1.0,"startupEffect":"Static"}')
+				var = json.loads('{"brightness":0.8,"startupEffect":"Static","displayClock":"False","clockPosition":"Bottom","clockColor":"Black"}')
 			else:
 				var = {}
 		return var
