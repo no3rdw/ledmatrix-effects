@@ -196,7 +196,11 @@ class Effect(Effect):
 		self.refreshMenu()
 		
 	def setStartupEffect(self, direction:int):
-		self.device.settings['startupEffect'] = self.device.cycleOption(locals()['effects'], self.device.settings['startupEffect'], direction)
+		try:
+			self.device.settings['startupEffect'] = self.device.cycleOption(locals()['effects'], self.device.settings['startupEffect'], direction)
+		except: #when specified effect is not in effect list, load first in list
+			self.device.settings['startupEffect'] = locals()['effects'][0]
+
 
 
 	def setBrightness(self, direction:int):

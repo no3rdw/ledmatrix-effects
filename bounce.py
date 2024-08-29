@@ -186,9 +186,7 @@ class Effect(Effect):
 					self.__init__(device=self.device, style=self.settings['selectedStyle'])
 					
 	def handleRemote(self, key:str):
-		if key == 'Enter':
-			self.__init__(device=self.device, style=self.settings['selectedStyle'])	
-		elif key == 'VolDown':
+		if key == 'VolDown':
 			self.setStyle(-1)
 		elif key == 'VolUp':
 			self.setStyle(1)

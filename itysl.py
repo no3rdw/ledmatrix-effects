@@ -255,6 +255,8 @@ class Effect(Effect):
 		elif newIndex < 0:
 			newIndex = len(self.subEffects)-1
 		getattr(self, 'init'+self.subEffects[newIndex])(self.device)
+		self.device.gc(1)
+		self.subEffectSwitch = time.monotonic()
 
 	def setSpeed(self, direction:int):
 		self.settings['self.selectedSwitchTime'] = self.device.cycleOption(self.subEffectSwitchTimes, self.settings['self.selectedSwitchTime'], direction)
@@ -272,18 +274,13 @@ class Effect(Effect):
 				# For spiral, we only advance to the next subeffect if the spiral animation completes
 				if self.subEffect == 'Spiral' and self.done == True and len(self.polygroup) == 0:
 					self.cycleSubEffect(1)
-					self.device.gc(1)
-					self.subEffectSwitch = time.monotonic()
 				# for the other effects, we can advance immediately
 				elif self.subEffect != 'Spiral':
 					self.cycleSubEffect(1)
-					self.device.gc(1)
-					self.subEffectSwitch = time.monotonic()
 			if self.device.menu_group.hidden and sum(locals()['keys']):
 				if locals()['keys'][3]:
 					if (self.device.limitStep(self.device.buttonPause, self.device.lastButtonTick)):
-						self.cycleSubEffect(1)
-						self.subEffectSwitch = time.monotonic()
+						self.cycleSubEffect(1)					
 						self.device.lastButtonTick = time.monotonic()
 			# -----------------------------------------------------------------------------------------
 			# -----------------------------------------------------------------------------------------
@@ -362,6 +359,7 @@ class Effect(Effect):
 			self.lastFrame = time.monotonic()
 
 	def handleRemote(self, key:str):
-		print(key)
-		if key == 'Enter':
+		if key == 'VolUp':
 			self.cycleSubEffect(1)
+		elif key == 'VolDown':
+			self.cycleSubEffect(-1)
