@@ -4,18 +4,21 @@ from effect import Effect
 class Effect(Effect):
 
 	def setDaySpeed(self, direction:int):
-		self.daycyclespeed = self.device.cycleOption([1,2,4,8,10], self.daycyclespeed, direction)
+		self.settings['daycyclespeed'] = self.device.cycleOption([1,2,4,8,10], self.settings['daycyclespeed'], direction)
 
 	def getDaySpeed(self):
-		return str(self.daycyclespeed)
+		return str(self.settings['daycyclespeed'])
 
 	def __init__(self, device:Device):
 		self.name = 'Grow'
+		super().__init__(device, self.name)
 		self.device = locals()['device']
 
 		device.clearDisplayGroup(device.effect_group)
 
-		self.daycyclespeed = 1
+		if not self.settings: #set defaults
+			self.settings['daycyclespeed'] = 1
+
 		self.offset_x = 0
 		self.offset_y = 0
 		self.currentscreen = 'Grow'
@@ -28,6 +31,8 @@ class Effect(Effect):
 				'get': self.getDaySpeed
 			}
 		]
+		self.menu.extend(self.effectmenu)
+
 		self.lastFrame = 0
 		self.lastPlantInit = 0
 		self.lastCloudFrame = 0
@@ -460,7 +465,7 @@ class Effect(Effect):
 									y=self.device.display.height,
 									color_index=self.stemfade[plant['color']][0])
 		plant['polygroup'].append(plant['stem'])
-		plant['life'] =  random.randint(15,35)/(10*self.daycyclespeed)
+		plant['life'] =  random.randint(15,35)/(10*self.settings['daycyclespeed'])
 		plant['timer'] = 0
 
 		self.plantgroup.append(plant['polygroup'])
@@ -593,7 +598,7 @@ class Effect(Effect):
 	def moveMoon(self):
 		x = self.arc_center[0] + self.arc_radius * math.cos(self.moon_angle)
 		y = self.arc_center[1] + self.arc_radius * math.sin(self.moon_angle)
-		self.moon_angle += self.daycyclespeed/300
+		self.moon_angle += self.settings['daycyclespeed']/300
 		self.moongroup.x = int(x)
 		self.moongroup.y = int(y)
 
@@ -602,10 +607,10 @@ class Effect(Effect):
 		y = self.arc_center[1] + self.arc_radius * math.sin(self.sun_angle)
 		self.sungroup.x = int(x)
 		self.sungroup.y = int(y)
-		self.sun_angle += self.daycyclespeed/300
+		self.sun_angle += self.settings['daycyclespeed']/300
 		angle = math.fmod(math.degrees(self.sun_angle), 360)
 
-		if (self.device.limitStep(2/self.daycyclespeed, self.lastTwinkleFrame)):
+		if (self.device.limitStep(2/self.settings['daycyclespeed'], self.lastTwinkleFrame)):
 			if angle > 330 or angle < 200:
 				self.twinkleStars()
 			angle1 = math.fmod(angle + 90, 360)
@@ -637,7 +642,7 @@ class Effect(Effect):
 
 	def play(self):
 		if self.currentscreen == 'Grow' and self.screenmoving == 0:
-			if (self.device.limitStep(2.2/self.daycyclespeed, self.lastCloudFrame)):
+			if (self.device.limitStep(2.2/self.settings['daycyclespeed'], self.lastCloudFrame)):
 				self.moveCloud(self.cloudfg)
 				self.moveCloud(self.cloudbg)
 				self.lastCloudFrame = time.monotonic()
@@ -669,7 +674,7 @@ class Effect(Effect):
 						plant['timer'] = time.monotonic()
 				x = x + 1
 
-			if (self.device.limitStep(.08/self.daycyclespeed, self.beeFrame)):
+			if (self.device.limitStep(.08/self.settings['daycyclespeed'], self.beeFrame)):
 				x = 0
 				while x < len(self.bees):
 					self.moveBee(self.bees[x])
@@ -677,7 +682,7 @@ class Effect(Effect):
 				self.beeFrame = time.monotonic()
 
 		elif self.currentscreen == 'Worms' and self.screenmoving == 0:
-			if (self.device.limitStep(.15/self.daycyclespeed, self.wormFrame)):
+			if (self.device.limitStep(.15/self.settings['daycyclespeed'], self.wormFrame)):
 				x = 0
 				while x < len(self.worms):
 					self.moveWorm(self.worms[x])
@@ -699,7 +704,7 @@ class Effect(Effect):
 
 				self.wormFrame = time.monotonic()
 
-			if (self.device.limitStep(60/self.daycyclespeed, self.wormTrailColorSwitch)):
+			if (self.device.limitStep(60/self.settings['daycyclespeed'], self.wormTrailColorSwitch)):
 				self.wormtrailcolor = 1 if self.wormtrailcolor == 0 else 0
 				self.wormTrailColorSwitch = time.monotonic()
 

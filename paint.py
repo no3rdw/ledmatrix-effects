@@ -4,6 +4,8 @@ from effect import Effect
 class Effect(Effect):
 	def __init__(self, device:Device):
 		self.name = 'Paint'
+		super().__init__(device, self.name)
+		
 		self.device = device
 
 		device.clearDisplayGroup(device.effect_group)

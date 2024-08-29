@@ -5,7 +5,8 @@ from effect import Effect
 class Effect(Effect):
 	def __init__(self, device:Device):
 		self.device = device
-
+		
+		self.name = "Settings"
 		self.menu = {}
 		self.menu['labels'] = [] # actual display objects, limited to 4 lines
 		self.menu['options'] = [] # all possible options, 0 = effect switch, all others are appended from effect

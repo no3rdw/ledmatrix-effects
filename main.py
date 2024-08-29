@@ -1,7 +1,7 @@
 from device import Device
 device = Device()
 
-effects = ['Paint','Static','Bounce']
+effects = ['Bounce','ITYSL','Static']
 for e in effects:
 	locals()[e] = __import__(str.lower(e)).Effect
 	device.gc()

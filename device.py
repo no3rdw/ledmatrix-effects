@@ -59,12 +59,17 @@ class Device:
 		# so we will implement our own brightness setting by modifying the level of all the HSL values
 		# and for imported .bmps, pass them through alphaPalette to modify all indexed colors
 
-		
-		
+		#background
 		self.effect_group = displayio.Group()
 		self.display.root_group.append(self.effect_group)
+
+		self.clock_group = displayio.Group()
+		self.display.root_group.append(self.clock_group)
+
 		self.menu_group = displayio.Group()
 		self.display.root_group.append(self.menu_group)
+
+		#foreground
 		self.overlay_group = displayio.Group()
 		self.display.root_group.append(self.overlay_group)
 
@@ -92,11 +97,14 @@ class Device:
 		self.changeEffect(self.cycleOption(locals()['effects'], self.effect.name, direction))
 
 	def cycleBrightness(self, direction:int):
-		self.settings['brightness'] = self.cycleOption([.2,.4,.6,.8,1], self.settings['brightness'], direction)
+		self.settings['brightness'] = self.cycleOption([.1,.2,.3,.4,.5,.6,.7,.8,.9,1], self.settings['brightness'], direction)
 
 	def changeEffect(self, e:str):
 		if not hasattr(self.effect, 'name') or e != self.effect.name:
-			self.effect = locals()[e](self)
+			try:
+				self.effect = locals()[e](self)
+			except: #when specified effect is not in effect list, load first in list
+				self.effect = locals()[locals()['effects'][0]](self)
 			locals()['menu'].getEffectMenu()
 			self.gc(1)
 
@@ -270,4 +278,5 @@ class Device:
 			f.write(json.dumps(var))
 			f.close()
 		else:
+			print(filename)
 			print(json.dumps(var))

@@ -4,6 +4,8 @@ from effect import Effect
 class Effect(Effect):
 	def __init__(self, device:Device):
 		self.name = 'Worms'
+		super().__init__(device, self.name)
+		
 		self.device = locals()['device']
 
 		device.clearDisplayGroup(device.effect_group)

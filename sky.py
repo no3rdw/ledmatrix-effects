@@ -3,11 +3,6 @@ import adafruit_display_text.label
 from effect import Effect
 
 class Effect(Effect):
-			
-	def initPhrase(self):
-		return self.device.getTime()
-		#phrases = ["This", 'That', 'The Other Thing']
-		#return phrases[random.randrange(0,len(phrases))]
 
 	def initBlimp(self):
 		me = {}
@@ -36,7 +31,7 @@ class Effect(Effect):
 		me['type'] = 'blimp'
 		me['delay'] = random.randrange(40,60)
 		me['done'] = False
-		print('init blimp complete')
+		#print('init blimp complete')
 		self.device.gc(1)
 		return me
 
@@ -61,13 +56,21 @@ class Effect(Effect):
 		me['type'] = 'plane'
 		me['delay'] = random.randrange(10,30)
 		me['done'] = False
-		#print('init plane complete')
 		self.device.gc(1)
 		return me
 
 	def __init__(self, device:Device):
 		self.name = 'Sky'
+		super().__init__(device, self.name)
+		
 		self.device = locals()['device']
+
+		self.messageTypes = ['Clock', 'Random']
+
+		self.settings = self.device.loadData('sky.json')
+		if not self.settings:
+			#defaults 
+			self.settings = {'currentMessageType':'Random'}
 
 		p = displayio.Palette(3)
 		p[0] = device.hls(.55, .6, .75) # blue sky
@@ -95,14 +98,33 @@ class Effect(Effect):
 		device.effect_group.append(self.cloudfg['group'])
 
 		self.menu = [
-			#{
-			#	'label': 'Setting',
-			#	'set': self.setFunction,
-			#	'get': self.getFunction
-			#}
+			{
+				'label': 'Message',
+				'set': self.setMessageType,
+				'get': self.getMessageType
+			}
         ]
+		self.menu.extend(self.effectmenu)
+
 		self.lastCloudFrame = 0
 		self.lastPlaneFrame = 0
+
+	def initPhrase(self):
+		if self.settings['currentMessageType'] == 'Random':
+			phrases = ["Eat At Joes","Don't Look Up","ALBANY","Calico Cut Jeans","Stinky!","Gimmie Dat"]
+			return phrases[random.randrange(0,len(phrases))]
+		elif self.settings['currentMessageType'] == 'Clock':
+			return self.device.getTime()
+		else:
+			return self.settings['currentMessageType']
+			#catch-all for all other phrases
+		
+
+	def setMessageType(self, direction):
+		self.settings['currentMessageType'] = self.device.cycleOption(self.messageTypes, self.settings['currentMessageType'], direction)
+
+	def getMessageType(self):
+		return self.settings['currentMessageType']
 
 	def initCloud(self, scale):
 		me = {}
@@ -149,7 +171,7 @@ class Effect(Effect):
 			self.moveCloud(self.cloudnbg)
 			self.lastCloudFrame = time.monotonic()
 
-		if (self.device.limitStep(.1, self.lastPlaneFrame)):
+		if (self.device.limitStep(.08, self.lastPlaneFrame)):
 			self.movePlane(self.planegroup)
 			self.lastPlaneFrame = time.monotonic()
 

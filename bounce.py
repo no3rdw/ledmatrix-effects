@@ -6,11 +6,14 @@ from effect import Effect
 class Effect(Effect):
 	def __init__(self, device:Device, style:str='Cards'):
 		self.name = 'Bounce'
+		super().__init__(device, self.name)
 		self.device = locals()['device']
 
 		device.clearDisplayGroup(device.effect_group)
 
-		self.selectedStyle = style
+		if not self.settings: #set defaults
+			self.settings['selectedStyle'] = style
+
 		self.styles = {
 			'Cards': {
 				'cardcolors': [2,3],
@@ -64,17 +67,17 @@ class Effect(Effect):
 		self.p[9] = device.hls(.02, .5, .95) #
 		self.p[10] = device.hls(.08, .3, 1) #
 
-		self.cardcolors = self.styles[self.selectedStyle]['cardcolors']
+		self.cardcolors = self.styles[self.settings['selectedStyle']]['cardcolors']
 		self.lastcolor = self.cardcolors[0]
 
-		self.displaylabels = self.styles[self.selectedStyle]['displaylabels']
+		self.displaylabels = self.styles[self.settings['selectedStyle']]['displaylabels']
 		self.cardlabels = ['A','2','3','4','5','6','7','8','9','10','J','Q','K']
 		self.lastcardlabel = self.cardlabels[random.randint(0, 12)]
 			
 		# Create a bitmap with the number of colors in the selected palette
 		self.bitmap = displayio.Bitmap(device.display.width, device.display.height, len(self.p))
 		tile_grid = displayio.TileGrid(self.bitmap, pixel_shader=self.p)
-		bitmaptools.fill_region(dest_bitmap=self.bitmap, x1=0, y1=0, x2=device.display.width, y2=device.display.height, value=self.styles[self.selectedStyle]['bgindex'])
+		bitmaptools.fill_region(dest_bitmap=self.bitmap, x1=0, y1=0, x2=device.display.width, y2=device.display.height, value=self.styles[self.settings['selectedStyle']]['bgindex'])
 
 		device.effect_group.append(tile_grid)
 
@@ -90,37 +93,39 @@ class Effect(Effect):
 				'get': self.getStyle
 			}
 		]
+		self.menu.extend(self.effectmenu)
+
 		self.lastFrame = 0
 		self.lastCardDrop = 0
 
 	def setStyle(self, direction:int):
-		self.selectedStyle = self.device.cycleOption(list(self.styles), self.selectedStyle, direction)
-		self.__init__(device=self.device, style=self.selectedStyle)
+		self.settings['selectedStyle'] = self.device.cycleOption(list(self.styles), self.settings['selectedStyle'], direction)
+		self.__init__(device=self.device, style=self.settings['selectedStyle'])
 
 	def getStyle(self):
-		return self.selectedStyle
+		return self.settings['selectedStyle']
 
 	def buildCard(self):
 		newcard = {}
-		newcard['gravity'] = self.styles[self.selectedStyle]['gravity']()
+		newcard['gravity'] = self.styles[self.settings['selectedStyle']]['gravity']()
 		self.lastcolor = self.device.cycleOption(self.cardcolors, self.lastcolor, 1)
 		newcard['color'] = self.lastcolor
 		self.lastcardlabel = self.device.cycleOption(self.cardlabels, self.lastcardlabel, 1)
 		newcard['label'] = self.lastcardlabel
 		newcard['poly'] = displayio.Group()
-		newcard['sizex'] = self.styles[self.selectedStyle]['sizex']()
-		if self.styles[self.selectedStyle]['shape'] == 'rect':
-			newcard['sizey'] = self.styles[self.selectedStyle]['sizey']()
+		newcard['sizex'] = self.styles[self.settings['selectedStyle']]['sizex']()
+		if self.styles[self.settings['selectedStyle']]['shape'] == 'rect':
+			newcard['sizey'] = self.styles[self.settings['selectedStyle']]['sizey']()
 		else:
 			newcard['sizey'] = newcard['sizex']
-		if self.styles[self.selectedStyle]['shape'] == 'circle':
+		if self.styles[self.settings['selectedStyle']]['shape'] == 'circle':
 			border = vectorio.Circle(pixel_shader=self.p, color_index=newcard['color'], radius=newcard['sizex'], x=0, y=0)
 		else:
 			border = vectorio.Rectangle(pixel_shader=self.p, color_index=newcard['color'], width=newcard['sizex'], height=newcard['sizey'], x=0, y=0)
 		newcard['poly'].append(border)
 
-		if self.styles[self.selectedStyle]['border']:
-			if self.styles[self.selectedStyle]['shape'] != 'circle':
+		if self.styles[self.settings['selectedStyle']]['border']:
+			if self.styles[self.settings['selectedStyle']]['shape'] != 'circle':
 				bg = vectorio.Rectangle(pixel_shader=self.p, color_index=1, width=newcard['sizex']-2, height=newcard['sizey']-2, x=1, y=1)
 				newcard['poly'].append(bg)
 
@@ -131,7 +136,7 @@ class Effect(Effect):
 			newcard['poly'].append(label)
 		newcard['poly'].x = random.randint(round(self.device.display.width/2) + newcard['sizey'], self.device.display.width)
 		newcard['poly'].y = -newcard['sizey'] - random.randint(0, 5)
-		newcard['dx'] = self.styles[self.selectedStyle]['dx']()
+		newcard['dx'] = self.styles[self.settings['selectedStyle']]['dx']()
 		newcard['realx'] = newcard['poly'].x
 		newcard['dy'] = 1 + (random.random() * 3)
 		self.cardgroup.append(newcard['poly'])
@@ -140,9 +145,9 @@ class Effect(Effect):
 		return newcard
 	
 	def moveCard(self, card):
-		if  self.styles[self.selectedStyle]['trail']:
+		if  self.styles[self.settings['selectedStyle']]['trail']:
 			bitmaptools.fill_region(dest_bitmap=self.bitmap, x1=card['poly'].x, y1=card['poly'].y, x2=card['poly'].x+card['sizex'], y2=card['poly'].y+card['sizey'], value=card['color'])
-			if self.styles[self.selectedStyle]['border']:
+			if self.styles[self.settings['selectedStyle']]['border']:
 				bitmaptools.fill_region(dest_bitmap=self.bitmap, x1=card['poly'].x+1, y1=card['poly'].y+1, x2=card['poly'].x+card['sizex']-1, y2=card['poly'].y+card['sizey']-1, value=1)
 
 		card['realx'] = card['realx'] + card['dx']
@@ -161,7 +166,7 @@ class Effect(Effect):
 		self.cards.pop(i)
 
 	def play(self):
-		if (self.device.limitStep(self.styles[self.selectedStyle]['cardinterval'](), self.lastCardDrop)):
+		if (self.device.limitStep(self.styles[self.settings['selectedStyle']]['cardinterval'](), self.lastCardDrop)):
 			self.cards.append(self.buildCard())
 			self.lastCardDrop = time.monotonic()
 
@@ -178,11 +183,11 @@ class Effect(Effect):
 			if locals()['keys'][3]:
 				if (self.device.limitStep(self.device.buttonPause, self.device.lastButtonTick)):
 					self.device.lastButtonTick = time.monotonic()
-					self.__init__(device=self.device, style=self.selectedStyle)
+					self.__init__(device=self.device, style=self.settings['selectedStyle'])
 					
 	def handleRemote(self, key:str):
 		if key == 'Enter':
-			self.__init__(device=self.device, style=self.selectedStyle)	
+			self.__init__(device=self.device, style=self.settings['selectedStyle'])	
 		elif key == 'VolDown':
 			self.setStyle(-1)
 		elif key == 'VolUp':

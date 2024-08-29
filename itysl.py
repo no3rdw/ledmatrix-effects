@@ -4,6 +4,8 @@ from effect import Effect
 class Effect(Effect):
 	def __init__(self, device:Device):
 		self.name = 'ITYSL'
+		super().__init__(device, self.name)
+		
 		self.device = device
 		self.menu = [
 			{
@@ -12,11 +14,16 @@ class Effect(Effect):
 				'get': self.getSpeed
 			}
 		]
+		self.menu.extend(self.effectmenu)
+
 		self.subEffects = ['Lines', 'Spiral', 'Circles']
 		self.lastFrame = 0
 
 		self.subEffectSwitch = time.monotonic()
-		self.selectedSwitchTime = 5 # seconds
+
+		if not self.settings: #set defaults
+			self.settings['self.selectedSwitchTime'] = 5 # seconds
+			
 		self.subEffectSwitchTimes = [0,5,10,30,60]
 
 		self.subEffect = self.subEffects[random.randrange(0, len(self.subEffects))]
@@ -250,18 +257,18 @@ class Effect(Effect):
 		getattr(self, 'init'+self.subEffects[newIndex])(self.device)
 
 	def setSpeed(self, direction:int):
-		self.selectedSwitchTime = self.device.cycleOption(self.subEffectSwitchTimes, self.selectedSwitchTime, direction)
+		self.settings['self.selectedSwitchTime'] = self.device.cycleOption(self.subEffectSwitchTimes, self.settings['self.selectedSwitchTime'], direction)
 		self.subEffectSwitch = time.monotonic()
 
 	def getSpeed(self):
-		if self.selectedSwitchTime == 0:
+		if self.settings['self.selectedSwitchTime'] == 0:
 			return 'Manual'
 		else:
-			return str(self.selectedSwitchTime) + 's'
+			return str(self.settings['self.selectedSwitchTime']) + 's'
 
 	def play(self):
 		if (self.device.limitStep(.01, self.lastFrame)):
-			if (self.selectedSwitchTime and self.device.limitStep(self.selectedSwitchTime, self.subEffectSwitch)):
+			if (self.settings['self.selectedSwitchTime'] and self.device.limitStep(self.settings['self.selectedSwitchTime'], self.subEffectSwitch)):
 				# For spiral, we only advance to the next subeffect if the spiral animation completes
 				if self.subEffect == 'Spiral' and self.done == True and len(self.polygroup) == 0:
 					self.cycleSubEffect(1)

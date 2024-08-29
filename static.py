@@ -1,15 +1,17 @@
-import displayio, random
+import displayio, random, time
 from effect import Effect
 
 class Effect(Effect):
-	def __init__(self, device:Device, palette:int=0, maxchanged:int=10):
+	def __init__(self, device:Device):
 		self.name = 'Static'
+		super().__init__(device, self.name)
 		self.device = device
 
 		self.speed = .05
-		self.maxchanged = maxchanged
-		self.maxChangedOptions = [0,1,10,50,100,150,200,250,300]
-		self.selectedPalette = palette
+		self.maxchangedOptions = [0,10,50,100,300,500,self.device.display.width*self.device.display.height]
+		
+		if not self.settings: #set defaults
+			self.settings = {"selectedPalette":0, "maxchanged":300}
 
 		# Create color palettes
 		self.palettes = []
@@ -46,16 +48,12 @@ class Effect(Effect):
 		p[9] = device.hls(.0, .4, 1)
 		self.palettes.append(p)
 
-		self.colorcount = len(self.palettes[self.selectedPalette])
-
-		# Create a bitmap with the number of colors in the selected palette
-		self.bitmap = displayio.Bitmap(device.display.width, device.display.height, self.colorcount)
-
-		# Create a TileGrid using the Bitmap and Palette
-		tile_grid = displayio.TileGrid(self.bitmap, pixel_shader=self.palettes[self.selectedPalette])
+		self.colorcount = len(self.palettes[self.settings['selectedPalette']])
+		self.bitmap = displayio.Bitmap(self.device.display.width, self.device.display.height, self.colorcount)
+		self.tile_grid = displayio.TileGrid(self.bitmap, pixel_shader=self.palettes[self.settings['selectedPalette']])
 
 		device.clearDisplayGroup(device.effect_group)
-		device.effect_group.append(tile_grid)
+		device.effect_group.append(self.tile_grid)
 
 		# init iterators
 		self.i = 1
@@ -73,37 +71,46 @@ class Effect(Effect):
 				'get': self.getSpeed
 			}
 		]
+		self.menu.extend(self.effectmenu)
 
 		for x in range(0, device.display.width):
 			for y in range(0, device.display.height):
 				self.bitmap[x, y] = random.randrange(0,self.colorcount)
 
 	def setPalette(self, direction:int):
-		a = self.selectedPalette + direction if self.selectedPalette + direction < len(self.palettes) else 0
+		a = self.settings['selectedPalette'] + direction if self.settings['selectedPalette'] + direction < len(self.palettes) else 0
 		if a < 0: a = len(self.palettes)-1
-		print(a)
-
-		self.__init__(device=self.device, palette=a, maxchanged=self.maxchanged)
+		self.settings['selectedPalette'] = a
+		self.colorcount = len(self.palettes[self.settings['selectedPalette']]) 
+		self.bitmap.fill(0)
+		self.tile_grid.pixel_shader=self.palettes[self.settings['selectedPalette']]
 
 	def setSpeed(self, direction:int):
-		self.maxchanged = self.device.cycleOption(self.maxChangedOptions, self.maxchanged, direction)
+		self.settings['maxchanged'] = self.device.cycleOption(self.maxchangedOptions, self.settings['maxchanged'], direction)
 
 	def getPalette(self):
-		return self.paletteNames[self.selectedPalette]
+		return self.paletteNames[self.settings['selectedPalette']]
 
 	def getSpeed(self):
-		return str(self.maxchanged)
+		return str(self.settings['maxchanged'])
 
 	def play(self):
 		#for x in range(0, self.x):
-		for x in range(0, self.maxchanged):
-			randpixel = [random.randrange(0, self.device.display.width), random.randrange(0, self.device.display.height)]
-			self.bitmap[randpixel] = random.randrange(0,self.colorcount)
-		
-		if self.device.menu_group.hidden and sum(locals()['keys']):
-			if locals()['keys'][3]:
-				if (self.device.limitStep(self.device.buttonPause, self.device.lastButtonTick)):
-					self.bitmap.fill(0)
+		if (self.device.limitStep(.05, self.lastFrame)):
+			if self.settings['maxchanged'] == self.device.display.width*self.device.display.height:
+				for x in range(0, self.device.display.width):
+					for y in range(0, self.device.display.height):
+						self.bitmap[x,y] = random.randrange(0,self.colorcount)
+			else:
+				for x in range(0, self.settings['maxchanged']):
+					randpixel = [random.randrange(0, self.device.display.width), random.randrange(0, self.device.display.height)]
+					self.bitmap[randpixel] = random.randrange(0,self.colorcount)
+			
+			if self.device.menu_group.hidden and sum(locals()['keys']):
+				if locals()['keys'][3]:
+					if (self.device.limitStep(self.device.buttonPause, self.device.lastButtonTick)):
+						self.bitmap.fill(0)
+			self.lastFrame = time.monotonic()
 
 	def handleRemote(self, key:str):
 		if key == 'Enter':
