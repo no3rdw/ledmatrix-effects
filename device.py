@@ -45,6 +45,8 @@ class Device:
 
 		self.effect = None
 		self.settings = self.loadData('settings.json')
+		if not self.settings: # set defaults
+			self.settings = {"brightness":0.8,"startupEffect":"Static","displayClock":False,"displaySeconds":False,"clockPosition":"Bottom","clockColor":"Black"}
 
 		##### LED Matrix setup
 		self.matrix = rgbmatrix.RGBMatrix(
@@ -82,6 +84,8 @@ class Device:
 		self.lastOverlayUpdate = 0
 
 		self.lastRead = 0
+
+		self.clockcolor = 0x000000
 
 	def cycleOption(self, optionList, selectedOption, direction):
 		currentIndex = optionList.index(selectedOption)
@@ -265,11 +269,7 @@ class Device:
 			var = json.loads(f.read())
 			f.close()
 		except:
-			if(filename == 'settings.json'):
-				# load defaults so device doesn't error if settings.json is not present
-				var = json.loads('{"brightness":0.8,"startupEffect":"Static","displayClock":"False","clockPosition":"Bottom","clockColor":"Black"}')
-			else:
-				var = {}
+			var = {}
 		return var
 
 	def writeData(self, var, filename:str):
@@ -280,3 +280,6 @@ class Device:
 		else:
 			print(filename)
 			print(json.dumps(var))
+
+	def str2bool(self, v):
+		return v.lower() in ("yes", "true", "t", "1")

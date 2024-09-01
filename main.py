@@ -1,12 +1,13 @@
 from device import Device
 device = Device()
 
-effects = ['Paint','Worms','Bounce','ITYSL','Static']
+effects = ['Worms','Bounce','ITYSL','Static']
 for e in effects:
 	locals()[e] = __import__(str.lower(e)).Effect
 	device.gc()
 
 menu = __import__('menu').Effect(device)
+clock = __import__('clock').Effect(device)
 device.changeEffect(device.settings['startupEffect'])
 
 while True:
@@ -23,6 +24,9 @@ while True:
 
 	if not device.menu_group.hidden: # only play the menu loop if menu is open
 		menu.play()
+
+	if not device.clock_group.hidden: # only play the clock loop if clock is displayed
+		clock.play()
 
 	device.effect.play()
 

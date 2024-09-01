@@ -1,1 +1,1 @@
-{"brightness":0.8,"startupEffect":"Sky","displayClock":"False","clockPosition":"Bottom","clockColor":"Black"}
+{"clockPosition": "Cycle", "clockColor": "Black", "displayClock": "True", "displaySeconds": "False", "brightness": 0.8, "startupEffect": "Worms"}

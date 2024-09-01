@@ -222,7 +222,12 @@ class Effect(Effect):
 			{
 				'label': 'Display',
 				'set': self.setDisplayClock,
-				'get': lambda: self.device.settings['displayClock']
+				'get': lambda: str(self.device.settings['displayClock'])
+			},
+			{
+				'label': 'Seconds',
+				'set': self.setDisplaySeconds,
+				'get': lambda: str(self.device.settings['displaySeconds'])
 			},
 			{
 				'label': 'Position',
@@ -255,7 +260,10 @@ class Effect(Effect):
 		self.device.settings['displayClock'] = self.device.cycleOption(['False','True'], self.device.settings['displayClock'], direction)
 
 	def setClockPosition(self, direction:int):
-		self.device.settings['clockPosition'] = self.device.cycleOption(['Bottom','Center','Top','Cycle'], self.device.settings['clockPosition'], direction)
+		self.device.settings['clockPosition'] = self.device.cycleOption(['Bottom','Center','Top','Random'], self.device.settings['clockPosition'], direction)
+
+	def setDisplaySeconds(self, direction:int):
+		self.device.settings['displaySeconds'] = self.device.cycleOption(['False','True'], self.device.settings['displaySeconds'], direction)
 
 	def setClockColor(self, direction:int):
 		self.device.settings['clockColor'] = self.device.cycleOption(['Black','White','Cycle'], self.device.settings['clockColor'], direction)

@@ -1,4 +1,4 @@
-import time, random, displayio, vectorio
+import time, random, displayio
 from effect import Effect
 
 class Effect(Effect):
@@ -7,6 +7,8 @@ class Effect(Effect):
 		super().__init__(device, self.name)
 		
 		self.device = locals()['device']
+		if not self.settings: #set defaults
+			self.settings = {"count":5}
 
 		device.clearDisplayGroup(device.effect_group)
 
@@ -26,27 +28,44 @@ class Effect(Effect):
 		self.tile_grid = displayio.TileGrid(self.bitmap, pixel_shader=self.p)
 		device.effect_group.append(self.tile_grid)
 
+		self.wormtrailcolor = 0
+		self.wormTrailColorSwitch = 0
+		self.mineralGrowTime = time.monotonic()
+
 		x = 0
 		while x < 25:
 			# draw some random dots
 			self.bitmap[(random.randint(0,self.device.display.width-1), random.randint(0,self.device.display.height-1))] = random.randint(4,6)
 			x = x + 1
 		
+		
+		self.createWorms(self.settings['count'])
+
+		self.menu = [
+			{
+				'label': 'Count',
+				'set': self.setCount,
+				'get': lambda: str(self.settings['count'])
+			}
+        ]
+		self.menu.extend(self.effectmenu)
+		
+		self.lastFrame = 0
+
+	def setCount(self, d):
+		self.settings['count'] = self.device.cycleOption([1,3,5,10,15,20,25], self.settings['count'], d)
+		x = 1 if self.wormtrailcolor == 0 else 0
+		self.bitmap.fill(x)
+		self.wormTrailColorSwitch = time.monotonic()
+		self.createWorms(self.settings['count'])
+
+	def createWorms(self, count:int=5):
 		x = 0
 		self.worms = []
-		while x < 3:
+		while x < count:
 			z = self.initWorm()
 			self.worms.append(z)
 			x = x+1
-
-		self.menu = [
-			#{
-			#	'label': 'Setting',
-			#	'set': self.setFunction,
-			#	'get': self.getFunction
-			#}
-        ]
-		self.lastFrame = 0
 
 	def initWorm(self):
 		me = {}
@@ -99,7 +118,7 @@ class Effect(Effect):
 		me['cells'].append((me['x'],me['y']))
 		self.bitmap[(me['x'],me['y'])] = me['color']
 		if len(me['cells']) > 7:
-			self.bitmap[(me['cells'][0][0], me['cells'][0][1])] = 1
+			self.bitmap[(me['cells'][0][0], me['cells'][0][1])] = self.wormtrailcolor
 			me['cells'].pop(0)
 
 		move = random.randint(1,5)
@@ -121,15 +140,23 @@ class Effect(Effect):
 			me['cd'] = me['cd'] - 1
 
 	def play(self):
-		if (self.device.limitStep(.2, self.lastFrame)):
-			# do stuff
-			
+		if (self.device.limitStep(.1, self.lastFrame)):
 			x = 0
 			while x < len(self.worms):
 				self.moveWorm(self.worms[x])
 				x = x+1
 
 			self.lastFrame = time.monotonic()
+		if (self.device.limitStep(round(300/len(self.worms),0), self.wormTrailColorSwitch)):
+			self.wormtrailcolor = 1 if self.wormtrailcolor == 0 else 0
+			self.wormTrailColorSwitch = time.monotonic()
+
+		if (self.device.limitStep(round(30/len(self.worms),0), self.mineralGrowTime)):
+			self.bitmap[(random.randrange(0,self.device.display.width-1),random.randrange(0,self.device.display.height-1))] = random.randrange(4,6)
+			self.mineralGrowTime = time.monotonic()
+
 
 	def handleRemote(self, key:str):
 		print(key)
+		if key == 'Enter':
+			self.worms.append(self.initWorm())
