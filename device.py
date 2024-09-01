@@ -46,7 +46,7 @@ class Device:
 		self.effect = None
 		self.settings = self.loadData('settings.json')
 		if not self.settings: # set defaults
-			self.settings = {"brightness":0.8,"startupEffect":"Static","displayClock":False,"displaySeconds":False,"clockPosition":"Bottom","clockColor":"Black"}
+			self.settings = {"brightness":0.8,"startupEffect":"Static","displayClock":False,"displaySeconds":False}
 
 		##### LED Matrix setup
 		self.matrix = rgbmatrix.RGBMatrix(
@@ -107,7 +107,7 @@ class Device:
 		if not hasattr(self.effect, 'name') or e != self.effect.name:
 			try:
 				self.effect = locals()[e](self)
-			except: #when specified effect is not in effect list, load first in list
+			except: #on error, or specified effect is not in effect list, load first in list
 				self.effect = locals()[locals()['effects'][0]](self)
 			locals()['menu'].getEffectMenu()
 			self.gc(1)

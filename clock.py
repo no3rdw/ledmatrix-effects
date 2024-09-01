@@ -29,11 +29,8 @@ class Effect:
 		if (self.device.limitStep(.4, self.lastFrame)):
 			self.clocklabel.color = self.device.clockcolor
 			self.clocklabel.text = self.device.getTime(self.device.str2bool(self.device.settings['displaySeconds']))
-			if(self.device.getTime(True)[-2:] == '00' and self.device.limitStep(30, self.lastMove)):
-				if self.device.settings['displaySeconds'] == 'True':
-					self.selectedClockPosition = 1
-				else: 
-					self.selectedClockPosition =  self.device.cycleOption([0,1,2,3], self.selectedClockPosition, 1)
+			if(self.device.getTime(True)[-2:] == '00' and self.device.limitStep(2, self.lastMove)):
+				self.selectedClockPosition =  self.device.cycleOption([0,1,2,3], self.selectedClockPosition, 1)
 				self.lastMove = time.monotonic()
 
 			self.lastFrame = time.monotonic()

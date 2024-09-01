@@ -28,6 +28,8 @@ class Effect(Effect):
 
 		self.subEffect = self.subEffects[random.randrange(0, len(self.subEffects))]
 		self.cycleSubEffect(0)
+
+		self.device.clockcolor = 0x000000
 	
 	def initCircles(self, device:Device):
 		self.subEffect = 'Circles'

@@ -48,6 +48,8 @@ class Effect(Effect):
 		p[9] = device.hls(.0, .4, 1)
 		self.palettes.append(p)
 
+		self.clockcolors = [0x000000,0x000000,0x000000]
+
 		self.colorcount = len(self.palettes[self.settings['selectedPalette']])
 		self.bitmap = displayio.Bitmap(self.device.display.width, self.device.display.height, self.colorcount)
 		self.tile_grid = displayio.TileGrid(self.bitmap, pixel_shader=self.palettes[self.settings['selectedPalette']])
@@ -84,6 +86,7 @@ class Effect(Effect):
 		self.colorcount = len(self.palettes[self.settings['selectedPalette']]) 
 		self.bitmap.fill(0)
 		self.tile_grid.pixel_shader=self.palettes[self.settings['selectedPalette']]
+		self.device.clockcolor = self.clockcolors[self.settings['selectedPalette']]
 
 	def setSpeed(self, direction:int):
 		self.settings['maxchanged'] = self.device.cycleOption(self.maxchangedOptions, self.settings['maxchanged'], direction)

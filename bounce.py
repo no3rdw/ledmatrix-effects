@@ -4,7 +4,7 @@ import bitmaptools
 from effect import Effect
 
 class Effect(Effect):
-	def __init__(self, device:Device, style:str='Cards'):
+	def __init__(self, device:Device):
 		self.name = 'Bounce'
 		super().__init__(device, self.name)
 		self.device = locals()['device']
@@ -12,7 +12,7 @@ class Effect(Effect):
 		device.clearDisplayGroup(device.effect_group)
 
 		if not self.settings: #set defaults
-			self.settings['selectedStyle'] = style
+			self.settings['selectedStyle'] = 'Cards'
 
 		self.styles = {
 			'Cards': {
@@ -26,7 +26,8 @@ class Effect(Effect):
 				'cardinterval': lambda : 1,
 				'gravity': lambda : random.randint(30,70)/100,
 				'dx': lambda : -1, # varying the x travel distance does not work well when the border/labels are enabled
-				'trail': True
+				'trail': True,
+				'clockcolor': 0x000000
 			},
 			'90s': {
 				'cardcolors': [3,1,4,5,6,7],
@@ -38,7 +39,8 @@ class Effect(Effect):
 				'cardinterval': lambda : random.randint(40,200)/100,
 				'gravity': lambda : random.randint(10,60)/100,
 				'dx': lambda : random.randint(60, 100)/-100,
-				'trail': True
+				'trail': True,
+				'clockcolor': 0xFFFFFF
 			},
 			'B-Balls': {
 				'cardcolors': [8,9,10],
@@ -50,7 +52,8 @@ class Effect(Effect):
 				'cardinterval': lambda : .9,
 				'gravity': lambda : .2,
 				'dx': lambda : random.randint(10, 100)/-100,
-				'trail': False
+				'trail': False,
+				'clockcolor': 0x000000
 			}
 		}
 
@@ -67,24 +70,13 @@ class Effect(Effect):
 		self.p[9] = device.hls(.02, .5, .95) #
 		self.p[10] = device.hls(.08, .3, 1) #
 
-		self.cardcolors = self.styles[self.settings['selectedStyle']]['cardcolors']
-		self.lastcolor = self.cardcolors[0]
-
-		self.displaylabels = self.styles[self.settings['selectedStyle']]['displaylabels']
-		self.cardlabels = ['A','2','3','4','5','6','7','8','9','10','J','Q','K']
-		self.lastcardlabel = self.cardlabels[random.randint(0, 12)]
-			
-		# Create a bitmap with the number of colors in the selected palette
 		self.bitmap = displayio.Bitmap(device.display.width, device.display.height, len(self.p))
-		tile_grid = displayio.TileGrid(self.bitmap, pixel_shader=self.p)
-		bitmaptools.fill_region(dest_bitmap=self.bitmap, x1=0, y1=0, x2=device.display.width, y2=device.display.height, value=self.styles[self.settings['selectedStyle']]['bgindex'])
+		self.tile_grid = displayio.TileGrid(self.bitmap, pixel_shader=self.p)
 
-		device.effect_group.append(tile_grid)
+		self.device.effect_group.append(self.tile_grid)
 
 		self.cardgroup = displayio.Group()
-		device.effect_group.append(self.cardgroup)
-
-		self.cards = []
+		self.device.effect_group.append(self.cardgroup)
 
 		self.menu = [
 			{
@@ -97,10 +89,34 @@ class Effect(Effect):
 
 		self.lastFrame = 0
 		self.lastCardDrop = 0
+		self.cards = []
+
+		self.initStyle('Cards')
+
+	def initStyle(self, style):
+		self.settings['selectedStyle'] = style
+		self.cardcolors = self.styles[self.settings['selectedStyle']]['cardcolors']
+		self.lastcolor = self.cardcolors[0]
+
+		self.displaylabels = self.styles[self.settings['selectedStyle']]['displaylabels']
+		self.cardlabels = ['A','2','3','4','5','6','7','8','9','10','J','Q','K']
+		self.lastcardlabel = self.cardlabels[random.randint(0, 12)]
+			
+		# Create a bitmap with the number of colors in the selected palette
+		self.bitmap.fill(len(self.p))
+
+		bitmaptools.fill_region(dest_bitmap=self.bitmap, x1=0, y1=0, x2=self.device.display.width, y2=self.device.display.height, value=self.styles[self.settings['selectedStyle']]['bgindex'])
+
+		while len(self.cards):
+			self.cardgroup.pop(0)
+			self.cards.pop(0)
+
+		self.device.clockcolor =  self.styles[self.settings['selectedStyle']]['clockcolor']
+
 
 	def setStyle(self, direction:int):
 		self.settings['selectedStyle'] = self.device.cycleOption(list(self.styles), self.settings['selectedStyle'], direction)
-		self.__init__(device=self.device, style=self.settings['selectedStyle'])
+		self.initStyle(self.settings['selectedStyle'])
 
 	def getStyle(self):
 		return self.settings['selectedStyle']
@@ -183,7 +199,7 @@ class Effect(Effect):
 			if locals()['keys'][3]:
 				if (self.device.limitStep(self.device.buttonPause, self.device.lastButtonTick)):
 					self.device.lastButtonTick = time.monotonic()
-					self.__init__(device=self.device, style=self.settings['selectedStyle'])
+					self.initStyle(self.settings['selectedStyle'])
 					
 	def handleRemote(self, key:str):
 		if key == 'VolDown':

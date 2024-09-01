@@ -230,16 +230,6 @@ class Effect(Effect):
 				'get': lambda: str(self.device.settings['displaySeconds'])
 			},
 			{
-				'label': 'Position',
-				'set': self.setClockPosition,
-				'get': lambda: self.device.settings['clockPosition']
-			},
-			{
-				'label': 'Color',
-				'set': self.setClockColor,
-				'get': lambda: self.device.settings['clockColor']
-			},
-			{
 				'label': 'Set Hr',
 				'set': self.setHour,
 				'get': self.getHour
@@ -259,15 +249,8 @@ class Effect(Effect):
 	def setDisplayClock(self, direction:int):
 		self.device.settings['displayClock'] = self.device.cycleOption(['False','True'], self.device.settings['displayClock'], direction)
 
-	def setClockPosition(self, direction:int):
-		self.device.settings['clockPosition'] = self.device.cycleOption(['Bottom','Center','Top','Random'], self.device.settings['clockPosition'], direction)
-
 	def setDisplaySeconds(self, direction:int):
 		self.device.settings['displaySeconds'] = self.device.cycleOption(['False','True'], self.device.settings['displaySeconds'], direction)
-
-	def setClockColor(self, direction:int):
-		self.device.settings['clockColor'] = self.device.cycleOption(['Black','White','Cycle'], self.device.settings['clockColor'], direction)
-
 
 	def fixHour(self:int, hour:int):
 		return 12 if hour == 0 or hour == 12 else hour % 12
