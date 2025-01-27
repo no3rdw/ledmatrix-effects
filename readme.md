@@ -1,7 +1,8 @@
 # LEDMatrix Effects!
 
-This project was built for a Feather M4 Express, 32x32 LED Matrix, a NeoKey 1x4, and a PCF8523 real-time clock.
+This project was originally built for a Feather M4 Express, 32x32 LED Matrix, a NeoKey 1x4, and a PCF8523 real-time clock.
 It then expanded to include a Circuit Playground Express with an attached IR Remote Receiver.
+The latest change was to shift the Feather M4 to the 'communications' role previously held by the Circuit Playground Express, adding a Feather RP2350 as the display driver.  An Adafruit AirLift is coming next!
 
 - When possible, all effects have been coded to work on other resolution screens (ex. 64x32), although I do not currently have the ability to test this.
 - The real-time clock is optional and can be commented out in device.py. Any time the clock would be displayed, 00:00:00 will be displayed instead.
