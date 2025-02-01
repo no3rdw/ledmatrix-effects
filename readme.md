@@ -11,7 +11,8 @@ The latest change was to shift the Feather M4 to the 'communications' role previ
 - If another microprocessor is used, the effect framerates may need to be adjusted (search for calls to limitStep within each effect's play loop)
 
 
-**Credits**
+**Credits & Dependencies**
+- Tested with CircuitPython 9.2.3
 - All included libraries courtesy Adafruit CircuitPython, available here: https://circuitpython.org/libraries
 - Included font converted from OpenType font 04B03
 - Easing functions in device.py courtesy Easings.net

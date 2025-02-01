@@ -15,6 +15,15 @@ from adafruit_bitmap_font import bitmap_font
 class Device:
 	def __init__(self):
 		displayio.release_displays()
+
+		# The Feather M4 cannot read IR signals and output to the RGBMatrix at the same time
+		# Instead, we'll use a Circuit Playground Express (because I have one on hand)
+		# to read the IR signals from a remote and pass them to the Feather via a serial connection.
+		# If not using a serial connection, replace the following line with the line below.
+		self.uart = busio.UART(board.TX, board.RX, baudrate=9600, timeout=0)
+		self.uart.reset_input_buffer()
+		# self.uart = None
+
 		self.i2c = board.I2C()
 
 		################### Hardware Config ##################
@@ -29,12 +38,6 @@ class Device:
 
 		self.i2c.unlock()
 
-		# The Feather M4 cannot read IR signals and output to the RGBMatrix at the same time
-		# Instead, we'll use a Circuit Playground Express (because I have one on hand)
-		# to read the IR signals from a remote and pass them to the Feather via a serial connection.
-		# If not using a serial connection, replace the following line with the line below.
-		self.uart = busio.UART(None, board.RX, baudrate=38400, timeout=0)
-		# self.uart = None
 
 		#if hasattr(self.neokey, "pixels"):
 		#	self.neokey.pixels.brightness = 0
@@ -88,6 +91,8 @@ class Device:
 		self.lastRead = 0
 
 		self.clockcolor = 0x000000
+		self.message_started = False
+		self.message = []
 
 	def cycleOption(self, optionList, selectedOption, direction):
 		currentIndex = optionList.index(selectedOption)
@@ -220,15 +225,30 @@ class Device:
 			return 1 - math.pow(-2 * x + 2, 4) / 2
 		
 	def receiveIROverSerial(self):		
-		byte_read = self.uart.readline()  
-		
-		if byte_read:
-			print('READ', byte_read)
-			self.processRemoteKeypress(byte_read.decode('utf-8'))
 
-		self.uart.reset_input_buffer()
-			
-		self.lastRead = time.monotonic()
+		byte_read = self.uart.read(1)
+
+		if byte_read is not None:
+			byte_read = byte_read.decode('utf-8')
+			if byte_read == '^':
+				self.message_started = True
+			if self.message_started:
+				self.message.append(byte_read)
+			if byte_read == '~':
+
+				self.message = "".join(self.message[1:-1]) # remove first (^) and last (~), then join all characters into a string
+				if len(self.message) == 8:
+					self.processRemoteKeypress(self.message)
+
+
+				print('MESSAGE RECEIVED')
+				self.message = []
+				self.message_started = False
+				self.uart.reset_input_buffer()
+				print(self.uart.in_waiting)
+
+		
+		#self.lastRead = time.monotonic()
 
 	def processRemoteKeypress(self, code:str):
 		#if hasattr(self.neokey, "pixels"):

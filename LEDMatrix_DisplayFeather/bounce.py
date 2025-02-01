@@ -157,7 +157,7 @@ class Effect(Effect):
 		newcard['dy'] = 1 + (random.random() * 3)
 		self.cardgroup.append(newcard['poly'])
 
-		self.device.gc(1)
+		self.device.gc(0)
 		return newcard
 	
 	def constrain(self, x:int):

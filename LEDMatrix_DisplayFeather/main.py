@@ -1,3 +1,6 @@
+import supervisor
+supervisor.runtime.autoreload = False
+
 from device import Device
 device = Device()
 
