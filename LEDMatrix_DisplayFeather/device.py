@@ -87,9 +87,6 @@ class Device:
 
 		self.overlayDelay = .7
 		self.lastOverlayUpdate = 0
-
-		self.lastRead = 0
-
 		self.clockcolor = 0x000000
 		self.message_started = False
 		self.message = []
@@ -225,31 +222,30 @@ class Device:
 			return 1 - math.pow(-2 * x + 2, 4) / 2
 		
 	def receiveIROverSerial(self):		
+		try:
+				
+			byte_read = self.uart.read(1)
 
-		byte_read = self.uart.read(1)
+			if byte_read is not None:
+				byte_read = byte_read.decode('utf-8')
+				if byte_read == '^':
+					self.message_started = True
+				if self.message_started:
+					self.message.append(byte_read)
+				if byte_read == '~':
 
-		if byte_read is not None:
-			byte_read = byte_read.decode('utf-8')
-			if byte_read == '^':
-				self.message_started = True
-			if self.message_started:
-				self.message.append(byte_read)
-			if byte_read == '~':
+					self.message = "".join(self.message[1:-1]) # remove first (^) and last (~), then join all characters into a string
+					if len(self.message) == 8:
+						self.processRemoteKeypress(self.message)
 
-				self.message = "".join(self.message[1:-1]) # remove first (^) and last (~), then join all characters into a string
-				if len(self.message) == 8:
-					self.processRemoteKeypress(self.message)
-
-
-				print('MESSAGE RECEIVED')
-				self.message = []
-				self.message_started = False
-				self.uart.reset_input_buffer()
-				print(self.uart.in_waiting)
-
+					print(self.message)
+					print('MESSAGE RECEIVED')
+					self.message = []
+					self.message_started = False
+					self.uart.reset_input_buffer()
+		except:
+			pass
 		
-		#self.lastRead = time.monotonic()
-
 	def processRemoteKeypress(self, code:str):
 		#if hasattr(self.neokey, "pixels"):
 		#	self.neokey.pixels.brightness = .5

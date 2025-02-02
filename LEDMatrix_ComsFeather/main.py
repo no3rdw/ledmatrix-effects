@@ -8,7 +8,6 @@ from adafruit_neokey.neokey1x4 import NeoKey1x4
 buttonTick = 0
 buttonPause = False
 messageTick = 0
-sendTick = 0
 lastCodeSent = ''
 uartMessage = ''
 
@@ -16,7 +15,9 @@ uartMessage = ''
 ir_receiver = pulseio.PulseIn(board.A1, maxlen=120, idle_state=True)
 decoder = adafruit_irremote.NonblockingGenericDecode(ir_receiver)
 uart = busio.UART(board.TX, board.RX, baudrate=9600)
+
 neokey = NeoKey1x4(board.I2C())
+neokey.pixels.brightness = 1
 
 def generate_random_string(length):
     characters = 'QWERTYUIOPASDFGHJKL:ZXCVBNM<>":{}!@#$%^&*()_+'
@@ -53,11 +54,16 @@ def sendCode(code):
 					("00FD18E7", "7"),
 					("00FD9867", "8"),
 					("00FD58A7", "9"))
-			
 		foundAt = [index for index, value in enumerate(table) if value[0] == code]
 		if len(foundAt):
 			lastCodeSent = prep(code)
 			uart.write(lastCodeSent)
+			neokey.pixels[0] = (255,0,0)
+			neokey.pixels[1] = (255,0,0)
+			neokey.pixels[2] = (255,0,0)
+			neokey.pixels[3] = (255,0,0)
+			decoder._unparsed_pulses.clear()
+			decoder.pulses.clear()
 			print("Sent:", lastCodeSent)	
 	else:
 		print('Buttons Paused')
@@ -69,7 +75,8 @@ while True:
 
 	for remoteMessage in decoder.read():
 		if hasattr(remoteMessage, 'reason'):
-			print('IR Error: ' + remoteMessage.reason)
+			pass
+			#print('IR Error: ' + remoteMessage.reason)
 		elif hasattr(remoteMessage, 'code'):
 			hex_code = ''.join(["%02X" % x for x in remoteMessage.code])
 			sendCode(hex_code)
@@ -89,14 +96,21 @@ while True:
 			sendCode('00FD906F')
 		buttonTick = time.monotonic()
 		
-	if limitStep(3, messageTick):
-		uartMessage = prep(generate_random_string(1024))
-		messageTick = time.monotonic()
+	#if limitStep(3, messageTick):
+	#	uartMessage = prep(generate_random_string(30))
+	#	messageTick = time.monotonic()
 	
 	if len(uartMessage):
 		buttonPause = True # don't interrupt messages with button codes
 		uart.write(uartMessage[0]) #send the first character of the message string
 		uartMessage = uartMessage[1:] #remove the first character from the message string
-
+		neokey.pixels[0] = (0,255,0)
+		neokey.pixels[1] = (0,255,0)
+		neokey.pixels[2] = (0,255,0)
+		neokey.pixels[3] = (0,255,0)
 	else:
 		buttonPause = False
+		neokey.pixels[0] = (0,0,0)
+		neokey.pixels[1] = (0,0,0)
+		neokey.pixels[2] = (0,0,0)
+		neokey.pixels[3] = (0,0,0)

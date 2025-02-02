@@ -19,8 +19,8 @@ menu.setDisplayClock(0)
 
 while True:
 
-	if (device.limitStep(.1, device.lastRead)):
-		device.receiveIROverSerial()
+	#if (device.limitStep(.1, device.lastRead)):
+	device.receiveIROverSerial()
 
 	#if hasattr(device.neokey, "pixels"):
 	#	keys = device.neokey.get_keys() # using this is MUCH faster than referencing device.neokey[x] over and over 
