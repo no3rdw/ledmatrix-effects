@@ -9,6 +9,7 @@ class Effect(Effect):
 		
 		self.device = locals()['device']
 
+		self.device.clockcolor = 0xFF0000
 		device.clearDisplayGroup(device.effect_group)
 
 		self.label = adafruit_display_text.label.Label(
@@ -41,7 +42,6 @@ class Effect(Effect):
 		pass
 	
 	def handleRemote(self, key:str):
-		print(key)
-		if key == 'Enter' and len(self.device.sendMessage) == 0:
-			self.label.text = "WAIT"
-			self.device.sendMessage = self.device.prepMessage('GETWEATHER')
+		if key == 'Enter':
+			self.label.text = ""
+			self.device.sendShortMessage('WTHR')

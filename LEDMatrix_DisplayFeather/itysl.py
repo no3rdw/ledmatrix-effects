@@ -279,11 +279,7 @@ class Effect(Effect):
 				# for the other effects, we can advance immediately
 				elif self.subEffect != 'Spiral':
 					self.cycleSubEffect(1)
-			#if self.device.menu_group.hidden and sum(locals()['keys']):
-			#	if locals()['keys'][3]:
-			#		if (self.device.limitStep(self.device.buttonPause, self.device.lastButtonTick)):
-			#			self.cycleSubEffect(1)					
-			#			self.device.lastButtonTick = time.monotonic()
+					
 			# -----------------------------------------------------------------------------------------
 			# -----------------------------------------------------------------------------------------
 			if self.subEffect == 'Lines':

@@ -119,28 +119,6 @@ class Effect(Effect):
 	def play(self):	
 		self.refreshMenu()
 
-	#	if sum(locals()['keys']) and self.device.limitStep(self.device.buttonPause, self.device.lastButtonTick): 
-	#		# only enter this loop if a button is down and it hasn't been too soon since last press
-	#		if locals()['keys'][0]:
-	#			self.device.setLastButtonTick()
-	#			self.hideMenu()
-	#	
-	#		if locals()['keys'][1]:
-	#			self.device.setLastButtonTick()
-	#			self.moveCaret(1)
-	#	
-	#		if locals()['keys'][2]:
-	#			self.device.setLastButtonTick()
-	#			self.changeOption(-1)
-	#	
-	#		if locals()['keys'][3]:
-	#			self.device.setLastButtonTick()
-	#			self.changeOption(1)
-	#	else:
-	#		if (self.device.limitStep(self.device.buttonPause, self.lastMenuRefresh)):
-	#			self.lastMenuRefresh = time.monotonic()
-	#			self.refreshMenu()
-
 	def handleRemote(self, key:str):
 		if key == 'Setup':
 			self.hideMenu()
@@ -162,8 +140,9 @@ class Effect(Effect):
 			elif self.selectedMenu == 'Clock':
 				self.getClockMenu()
 
-	def showOverlay(self, message:str):
+	def showOverlay(self, message:str, length:float=.7):
 		self.device.lastOverlayUpdate = time.monotonic()
+		self.device.overlayDelay = length
 		self.overlay.text = message
 		self.device.overlay_group.hidden = False
 

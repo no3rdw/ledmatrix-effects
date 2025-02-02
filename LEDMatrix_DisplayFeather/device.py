@@ -23,7 +23,6 @@ class Device:
 		self.uart = busio.UART(board.TX, board.RX, baudrate=9600, timeout=0)
 		self.uart.reset_input_buffer()
 		# self.uart = None
-		self.sendMessage = ''
 
 		self.i2c = board.I2C()
 
@@ -83,14 +82,15 @@ class Device:
 
 		self.font = bitmap_font.load_font("fonts/04B_03__6pt.bdf")
 		self.font.load_glyphs('1234567890QWERTYUIOPLKJHGFDSAZXCVBNMmnbvcxzasdfghjklpoiuytrewq&:<>')
-		#self.lastButtonTick = 0
-		#self.buttonPause = .01
 
-		self.overlayDelay = .7
+		self.overlayDelayDefault = .7
+		self.overlayDelay = self.overlayDelayDefault
+
 		self.lastOverlayUpdate = 0
 		self.clockcolor = 0x000000
-		self.message_started = False
-		self.message = []
+		self.message_read_started = False
+		self.message_read = []
+		self.messageToSend = []
 
 	def cycleOption(self, optionList, selectedOption, direction):
 		currentIndex = optionList.index(selectedOption)
@@ -226,29 +226,40 @@ class Device:
 		try:
 			byte_read = self.uart.read(1)
 			if byte_read is not None:
+				
 				byte_read = byte_read.decode('utf-8')
 				if byte_read == '^':
-					self.message_started = True
-				if self.message_started:
-					self.message.append(byte_read)
+					self.message_read_started = True
+				if self.message_read_started:
+					self.message_read.append(byte_read)
 				if byte_read == '~':
-					self.message = "".join(self.message[1:-1]) # remove first (^) and last (~), then join all characters into a string
-					print('MESSAGE RECEIVED', self.message)
+					self.message_read = "".join(self.message_read[1:-1]) # remove first (^) and last (~), then join all characters into a string
+					print('Rcvd:', self.message_read)
 
-					if len(self.message) == 8:
-						self.processRemoteKeypress(self.message)
+					if len(self.message_read) == 8:
+						self.processRemoteKeypress(self.message_read)
+					elif len(self.message_read) > 4:
+						self.effect.handleMessage(self.message_read)
+						self.overlayDelay = self.overlayDelayDefault
+					elif self.message_read == 'WAIT':
+						locals()['menu'].showOverlay('Wait...', 10)
+					elif self.message_read == 'C2WF':
+						locals()['menu'].showOverlay('WifiWait', 30)
+					elif self.message_read == 'WIFI':
+						locals()['menu'].showOverlay('Wifi!')	
+					elif self.message_read == 'ERRR':
+						locals()['menu'].showOverlay('Error')
 					else:
-						self.effect.handleMessage(self.message)	
+						pass
 					
-					self.message = []
-					self.message_started = False
+					self.message_read = []
+					self.message_read_started = False
 					self.uart.reset_input_buffer()
+
 		except:
 			pass
 		
 	def processRemoteKeypress(self, code:str):
-		#if hasattr(self.neokey, "pixels"):
-		#	self.neokey.pixels.brightness = .5
 		table = (("00FD00FF", "VolDown"),
 		   		("00FD807F", "PlayPause"),
 				("00FD40BF", "VolUp"),
@@ -283,7 +294,6 @@ class Device:
 					self.cycleEffect(1)
 				else:
 					self.effect.handleRemote(key)
-			#self.setLastButtonTick()
 
 	def loadData(self, filename:str):
 		try:
@@ -317,3 +327,19 @@ class Device:
 	
 	def prepMessage(self, m):
 			return '^'+m+'~'
+	
+	def sendMessage(self, m):
+		self.messageToSend = self.prepMessage(m)
+		print("Sent:", self.messageToSend)
+		return self.messageToSend
+
+	def sendShortMessage(self, m):
+		m = self.prepMessage(m)
+		self.uart.write(m)
+		print("Sent:", m)
+		return m
+
+	def sendMessageChar(self):
+		
+		self.uart.write(self.messageToSend[0]) #send the first character of the message string
+		self.messageToSend = self.messageToSend[1:] #remove the first character from the message string

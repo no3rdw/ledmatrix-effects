@@ -213,12 +213,6 @@ class Effect(Effect):
 				c = c + 1			
 			self.lastFrame = time.monotonic()
 
-		# self.device.menu_group.hidden and sum(locals()['keys']):
-		#	if locals()['keys'][3]:
-		#		if (self.device.limitStep(self.device.buttonPause, self.device.lastButtonTick)):
-		#			self.device.lastButtonTick = time.monotonic()
-		#			self.initStyle(self.settings['selectedStyle'])
-					
 	def handleRemote(self, key:str):
 		if key == 'VolDown':
 			self.setStyle(-1)

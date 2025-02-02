@@ -183,4 +183,4 @@ class Effect(Effect):
 				self.device.effect_group[3] = self.planegroup['group']
 
 	def handleRemote(self, key:str):
-		print(key)
+		pass

@@ -118,7 +118,7 @@ class Effect(Effect):
 		msg = self.usbmidi.receive()
 
 		if msg is not None:
-			print("Received:", msg, "at", time.monotonic())
+			print("Midi:", msg, "at", time.monotonic())
 
 		if type(msg) is NoteOn:
 			if msg.channel < self.channelcount and msg.velocity > 0:
@@ -143,6 +143,5 @@ class Effect(Effect):
 			self.lastCleanup = time.monotonic()
 	
 	def handleRemote(self, key:str):
-		print(key)
 		if key == 'Enter':
 			self.resetNotes()

@@ -109,10 +109,6 @@ class Effect(Effect):
 					randpixel = [random.randrange(0, self.device.display.width), random.randrange(0, self.device.display.height)]
 					self.bitmap[randpixel] = random.randrange(0,self.colorcount)
 			
-			#if self.device.menu_group.hidden and sum(locals()['keys']):
-			#	if locals()['keys'][3]:
-			#		if (self.device.limitStep(self.device.buttonPause, self.device.lastButtonTick)):
-			#			self.bitmap.fill(0)
 			self.lastFrame = time.monotonic()
 
 	def handleRemote(self, key:str):

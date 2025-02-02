@@ -157,6 +157,5 @@ class Effect(Effect):
 
 
 	def handleRemote(self, key:str):
-		print(key)
 		if key == 'Enter':
 			self.worms.append(self.initWorm())
