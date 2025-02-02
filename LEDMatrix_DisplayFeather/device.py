@@ -23,6 +23,7 @@ class Device:
 		self.uart = busio.UART(board.TX, board.RX, baudrate=9600, timeout=0)
 		self.uart.reset_input_buffer()
 		# self.uart = None
+		self.sendMessage = ''
 
 		self.i2c = board.I2C()
 
@@ -221,11 +222,9 @@ class Device:
 		else:
 			return 1 - math.pow(-2 * x + 2, 4) / 2
 		
-	def receiveIROverSerial(self):		
+	def receiveOverSerial(self):		
 		try:
-				
 			byte_read = self.uart.read(1)
-
 			if byte_read is not None:
 				byte_read = byte_read.decode('utf-8')
 				if byte_read == '^':
@@ -233,13 +232,14 @@ class Device:
 				if self.message_started:
 					self.message.append(byte_read)
 				if byte_read == '~':
-
 					self.message = "".join(self.message[1:-1]) # remove first (^) and last (~), then join all characters into a string
+					print('MESSAGE RECEIVED', self.message)
+
 					if len(self.message) == 8:
 						self.processRemoteKeypress(self.message)
-
-					print(self.message)
-					print('MESSAGE RECEIVED')
+					else:
+						self.effect.handleMessage(self.message)	
+					
 					self.message = []
 					self.message_started = False
 					self.uart.reset_input_buffer()
@@ -314,3 +314,6 @@ class Device:
 
 	def str2bool(self, v):
 		return v.lower() in ("yes", "true", "t", "1")
+	
+	def prepMessage(self, m):
+			return '^'+m+'~'
