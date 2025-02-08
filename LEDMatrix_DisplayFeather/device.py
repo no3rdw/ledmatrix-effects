@@ -223,7 +223,7 @@ class Device:
 			return 1 - math.pow(-2 * x + 2, 4) / 2
 		
 	def receiveOverSerial(self):		
-		try:
+		#try:
 			byte_read = self.uart.read(1)
 			if byte_read is not None:
 				
@@ -256,8 +256,8 @@ class Device:
 					self.message_read_started = False
 					self.uart.reset_input_buffer()
 
-		except:
-			pass
+		#except:
+		#	pass
 		
 	def processRemoteKeypress(self, code:str):
 		table = (("00FD00FF", "VolDown"),

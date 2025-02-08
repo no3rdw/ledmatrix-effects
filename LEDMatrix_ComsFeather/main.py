@@ -9,7 +9,6 @@ device.setupIR()
 while True:
 	device.receiveOverSerial()
 	
-	
 	for remoteMessage in device.decoder.read():
 		if hasattr(remoteMessage, 'reason'):
 			print('IR Error: ' + remoteMessage.reason)
@@ -19,18 +18,17 @@ while True:
 		else:
 			pass
 	
-	
-	#if device.limitStep(.1, device.buttonTick):
-	#	keys = device.neokey.get_keys()
-	#	if keys[0]:
-	#		device.sendCode('00FD20DF')
-	#	if keys[1]:
-	#		device.sendCode('00FDA05F')
-	#	if keys[2]:
-	#		device.sendCode('00FDB04F')
-	#	if keys[3]:
-	#		device.sendCode('00FD906F')
-	#	device.buttonTick = time.monotonic()
+	if device.limitStep(.1, device.buttonTick):
+		keys = device.neokey.get_keys()
+		if keys[0]:
+			device.sendCode('00FD20DF')
+		if keys[1]:
+			device.sendCode('00FDA05F')
+		if keys[2]:
+			device.sendCode('00FDB04F')
+		if keys[3]:
+			device.sendCode('00FD906F')
+		device.buttonTick = time.monotonic()
 		
 	if len(device.messageToSend):
 		device.sendMessageChar()

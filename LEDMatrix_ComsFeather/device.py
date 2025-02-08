@@ -160,9 +160,12 @@ class Device:
 		self.messageToSend = self.messageToSend[1:] #remove the first character from the message string
 
 	def getWeather(self):
-		self.sendShortMessage('WAIT')
-		JSON_URL = "http://api.open-meteo.com/v1/forecast?latitude=42.6576&longitude=-73.8018&current=temperature_2m,precipitation_probability&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=America%2FNew_York"
+		#self.sendShortMessage('WAIT')
+		JSON_URL = "http://api.open-meteo.com/v1/forecast?latitude=42.6576&longitude=-73.8018&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=America%2FNew_York&temporal_resolution=hourly_6&forecast_days=5&forecast_hours=24"
 		with self.requests.get(JSON_URL) as response:
 			myresp = response.json()
-			print("JSON Response: ", myresp)
-			return json.dumps(myresp)
+			filtered = myresp['daily']
+			filtered['current_temp'] = myresp['current']['temperature_2m']
+			filtered['current_code'] = myresp['current']['weather_code']
+			print("JSON Response: ", filtered)
+			return json.dumps(filtered)
