@@ -108,6 +108,7 @@ class Device:
 
 	def cycleBrightness(self, direction:int):
 		self.settings['brightness'] = self.cycleOption([.1,.2,.3,.4,.5,.6,.7,.8,.9,1], self.settings['brightness'], direction)
+		self.reloadEffect()
 
 	def changeEffect(self, e:str):
 		if not hasattr(self.effect, 'name') or e != self.effect.name:
@@ -117,6 +118,10 @@ class Device:
 				self.effect = locals()[locals()['effects'][0]](self)
 			locals()['menu'].getEffectMenu()
 			self.gc(1)
+
+	def reloadEffect(self):
+		self.effect = locals()[self.effect.name](self)
+		self.gc(1)
 
 	def getTime(self, seconds:bool=True):
 		if hasattr(self.rtc, 'datetime'):
@@ -239,22 +244,22 @@ class Device:
 
 					if len(self.message_read) == 8:
 						self.processRemoteKeypress(self.message_read)
-					elif len(self.message_read) > 4:
-						self.effect.handleMessage(self.message_read)
-						self.overlayDelay = self.overlayDelayDefault
-					elif self.message_read == 'WAIT':
-						locals()['menu'].showOverlay('Wait...', 10)
-					elif self.message_read == 'C2WF':
-						self.wifi = False
-						locals()['menu'].showOverlay('WifiWait', 30)
-					elif self.message_read == 'WIFI':
-						self.wifi = True
-						locals()['menu'].showOverlay('Wifi!')	
-					elif self.message_read == 'ERRR':
-						locals()['menu'].showOverlay('Error')
 					else:
-						pass
-					
+						if "handleMessage" in dir(self.effect):
+							self.effect.handleMessage(self.message_read)
+						if self.message_read == 'WAIT':
+							locals()['menu'].showOverlay('Wait...', 10)
+						elif self.message_read == 'C2WF':
+							self.wifi = False
+							locals()['menu'].showOverlay('WifiWait', 30)
+						elif self.message_read == 'WIFI':
+							self.wifi = True
+							locals()['menu'].showOverlay('Wifi!')	
+						elif self.message_read == 'ERRR':
+							locals()['menu'].showOverlay('Error')
+						else:
+							self.overlayDelay = self.overlayDelayDefault
+
 					self.message_read = []
 					self.message_read_started = False
 					self.uart.reset_input_buffer()

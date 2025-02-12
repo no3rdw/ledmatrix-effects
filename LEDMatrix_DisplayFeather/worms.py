@@ -8,13 +8,13 @@ class Effect(Effect):
 		
 		self.device = locals()['device']
 		if not self.settings: #set defaults
-			self.settings = {"count":5}
+			self.settings = {"count":15,"speed":0.02}
 
 		device.clearDisplayGroup(device.effect_group)
 
 		self.p = displayio.Palette(10)
-		self.p[0] =  device.hls(.04, .05, .5) # bg
-		self.p[1] = device.hls(.04, .06, .5) # worm poop
+		self.p[0] = device.hls(.04, .08, .6) # bg
+		self.p[1] = device.hls(.01, .05, .4) # worm trail
 		
 		self.p[2] = device.hls(.01, .2, .6) # worm
 		self.p[3] = device.hls(.015, .25, .65) # worm2
@@ -46,6 +46,11 @@ class Effect(Effect):
 				'label': 'Count',
 				'set': self.setCount,
 				'get': lambda: str(self.settings['count'])
+			},
+			{
+				'label': 'Speed',
+				'set': self.setSpeed,
+				'get': lambda: str(self.settings['speed'])
 			}
         ]
 		self.menu.extend(self.effectmenu)
@@ -58,6 +63,9 @@ class Effect(Effect):
 		self.bitmap.fill(x)
 		self.wormTrailColorSwitch = time.monotonic()
 		self.createWorms(self.settings['count'])
+
+	def setSpeed(self, d):
+		self.settings['speed'] = self.device.cycleOption([0.01,0.02,0.04,0.06,0.08,0.1,0.15,0.2], self.settings['speed'], d)
 
 	def createWorms(self, count:int=5):
 		x = 0
@@ -140,21 +148,22 @@ class Effect(Effect):
 			me['cd'] = me['cd'] - 1
 
 	def play(self):
-		if (self.device.limitStep(.1, self.lastFrame)):
+		if (self.device.limitStep(self.settings['speed'], self.lastFrame)):
 			x = 0
 			while x < len(self.worms):
 				self.moveWorm(self.worms[x])
 				x = x+1
 
 			self.lastFrame = time.monotonic()
-		if (self.device.limitStep(round(300/len(self.worms),0), self.wormTrailColorSwitch)):
-			self.wormtrailcolor = 1 if self.wormtrailcolor == 0 else 0
-			self.wormTrailColorSwitch = time.monotonic()
+			if (self.device.limitStep(round((300/(len(self.worms))*(self.settings['speed']*20)),0), self.wormTrailColorSwitch)):
+				self.wormtrailcolor = 1 if self.wormtrailcolor == 0 else 0
+				self.wormTrailColorSwitch = time.monotonic()
+				#print('switch')
 
-		if (self.device.limitStep(round(30/len(self.worms),0), self.mineralGrowTime)):
-			self.bitmap[(random.randrange(0,self.device.display.width-1),random.randrange(0,self.device.display.height-1))] = random.randrange(4,6)
-			self.mineralGrowTime = time.monotonic()
-
+			if (self.device.limitStep(round((70/(len(self.worms))*(self.settings['speed']*20)),0), self.mineralGrowTime)):
+				self.bitmap[(random.randrange(0,self.device.display.width-1),random.randrange(0,self.device.display.height-1))] = random.randrange(4,6)
+				self.mineralGrowTime = time.monotonic()
+				#print('grow')
 
 	def handleRemote(self, key:str):
 		if key == 'Enter':

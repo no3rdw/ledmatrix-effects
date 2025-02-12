@@ -113,7 +113,7 @@ class Device:
 					self.message_read.append(byte_read)
 				if byte_read == '~':
 					self.message_read = "".join(self.message_read[1:-1]) # remove first (^) and last (~), then join all characters into a string
-					print('MESSAGE RECEIVED', self.message_read)
+					print('Rcvd:', self.message_read)
 					if(self.message_read == 'WIFI'):
 						if self.esp.is_connected:
 							self.sendShortMessage('WIFI') 	

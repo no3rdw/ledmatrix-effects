@@ -14,7 +14,7 @@ class Effect(Effect):
 		self.device.clockcolor = 0xFF0000
 		device.clearDisplayGroup(device.effect_group)
 		self.lastWeatherGet = 0
-		self.lastWeatherTry = 0
+		self.lastWeatherTry = time.monotonic()
 		self.lastPageTurn = 0
 		self.currentPage = 0
 		self.currentDay = 0
@@ -67,7 +67,7 @@ class Effect(Effect):
 	def play(self):
 		if self.device.wifi == True:
 			if self.device.limitStep(self.lastWeatherGet, 300): # refresh every 30 minutes
-				if self.device.limitStep(self.lastWeatherTry, 5): #try every X seconds
+				if self.device.limitStep(self.lastWeatherTry, 10): #try every X seconds
 					self.requestWeather(0,False) # used when live
 					#self.handleMessage(self.data) # used when testing
 					self.lastWeatherTry = time.monotonic()
@@ -159,36 +159,39 @@ class Effect(Effect):
 
 	def handleMessage(self, message:str):
 		try:
-			# ^{
-			# 	"time": ["2025-02-07", "2025-02-08", "2025-02-09"], 
-			# 	"temperature_2m_min": [19.5, 17.9, 10.4],
-			#	"precipitation_probability_max": [7, 84, 97],
-			#	"temperature_2m_max": [35.2, 32.5, 31.4], 
-			#	"weather_code": [71, 73, 75]
-			# }~
-			struct = json.loads(message)
-			self.days = []
-			if 'weather_code' in struct.keys():
-				i = 0
-				while i < len(struct['weather_code']):
-					x = {}
-					x['date'] = struct['time'][i][5:7] + '/' + struct['time'][i][8:10]
-					x['lo'] = struct['temperature_2m_min'][i]
-					x['hi'] = struct['temperature_2m_max'][i]
-					x['precip'] = struct['precipitation_probability_max'][i]
-					x['code'] = struct['weather_code'][i]
-					if i == 0:
-						x['current_code'] = struct['current_code']
-						x['current_temp'] = struct['current_temp']	
-					self.days.append(x)
-					i = i + 1
-				self.lastWeatherGet = time.monotonic()
+			if(len(message) > 4):
+				# ^{
+				# 	"time": ["2025-02-07", "2025-02-08", "2025-02-09"], 
+				# 	"temperature_2m_min": [19.5, 17.9, 10.4],
+				#	"precipitation_probability_max": [7, 84, 97],
+				#	"temperature_2m_max": [35.2, 32.5, 31.4], 
+				#	"weather_code": [71, 73, 75]
+				# }~
+				struct = json.loads(message)
+				self.days = []
+				if 'weather_code' in struct.keys():
+					i = 0
+					while i < len(struct['weather_code']):
+						x = {}
+						x['date'] = struct['time'][i][5:7] + '/' + struct['time'][i][8:10]
+						x['lo'] = struct['temperature_2m_min'][i]
+						x['hi'] = struct['temperature_2m_max'][i]
+						x['precip'] = struct['precipitation_probability_max'][i]
+						x['code'] = struct['weather_code'][i]
+						if i == 0:
+							x['current_code'] = struct['current_code']
+							x['current_temp'] = struct['current_temp']	
+						self.days.append(x)
+						i = i + 1
+					self.lastWeatherGet = time.monotonic()
 
-				self.currentDay = 0
-				self.currentPage = 0
-				self.showPage()
+					self.currentDay = 0
+					self.currentPage = 0
+					self.showPage()
+			elif message == 'WIFI':
+				self.requestWeather(0,True)
 			else:
-				print('WRONG JSON')
+				pass
 		except Exception as e:
 			locals()['menu'].showOverlay('Error', 1)
 			print('EXCEPTION', e)
