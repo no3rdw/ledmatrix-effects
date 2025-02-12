@@ -1,4 +1,4 @@
-import time, json
+import time
 
 from device import Device
 device = Device()
@@ -8,15 +8,7 @@ device.setupIR()
 
 while True:
 	device.receiveOverSerial()
-	
-	for remoteMessage in device.decoder.read():
-		if hasattr(remoteMessage, 'reason'):
-			print('IR Error: ' + remoteMessage.reason)
-		elif hasattr(remoteMessage, 'code'):
-			hex_code = ''.join(["%02X" % x for x in remoteMessage.code])
-			device.sendCode(hex_code)
-		else:
-			pass
+	device.readPulses()
 	
 	if device.limitStep(.1, device.buttonTick):
 		keys = device.neokey.get_keys()

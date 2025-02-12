@@ -91,6 +91,7 @@ class Device:
 		self.message_read_started = False
 		self.message_read = []
 		self.messageToSend = []
+		self.wifi = False
 
 	def cycleOption(self, optionList, selectedOption, direction):
 		currentIndex = optionList.index(selectedOption)
@@ -244,8 +245,10 @@ class Device:
 					elif self.message_read == 'WAIT':
 						locals()['menu'].showOverlay('Wait...', 10)
 					elif self.message_read == 'C2WF':
+						self.wifi = False
 						locals()['menu'].showOverlay('WifiWait', 30)
 					elif self.message_read == 'WIFI':
+						self.wifi = True
 						locals()['menu'].showOverlay('Wifi!')	
 					elif self.message_read == 'ERRR':
 						locals()['menu'].showOverlay('Error')

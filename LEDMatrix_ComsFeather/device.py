@@ -51,9 +51,34 @@ class Device:
 	def setupIR(self):
 		# IR receiver setup needs to happen after connected to wifi
 		self.ir_receiver = pulseio.PulseIn(board.A1, maxlen=1200, idle_state=True)
-		self.decoder = adafruit_irremote.NonblockingGenericDecode(self.ir_receiver)
+		#self.decoder = adafruit_irremote.NonblockingGenericDecode(self.ir_receiver) # unreliable
+		self.decoder = adafruit_irremote.GenericDecode(self.ir_receiver)
 		self.lastSentCode = ''
 
+	def readPulses(self):
+		pulses = self.decoder.read_pulses(input_pulses=self.ir_receiver, blocking=False, pulse_window=.04)
+		if pulses is not None:
+			try:
+				code = self.decoder.decode_bits(pulses)
+				hex_code = ''.join(["%02X" % x for x in code])
+				self.sendCode(hex_code)
+			except adafruit_irremote.IRNECRepeatException:  # unusual short code!
+				#pass
+				self.sendCode(self.lastSentCode)
+			except adafruit_irremote.IRDecodeException as e:     # failed to decode
+				pass
+				#print("Failed to decode: ", e.args)
+
+		# nonblocking decoder is unreliable!!
+		# for remoteMessage in device.decoder.read():
+		# 	if hasattr(remoteMessage, 'reason'):
+		# 		print('IR Error: ' + remoteMessage.reason)
+		# 	elif hasattr(remoteMessage, 'code'):
+		# 		hex_code = ''.join(["%02X" % x for x in remoteMessage.code])
+		# 		device.sendCode(hex_code)
+		# 	else:
+		# 		pass
+		
 	def wifiConnect(self):
 		try:
 			self.sendShortMessage('C2WF')
@@ -88,10 +113,12 @@ class Device:
 					self.message_read.append(byte_read)
 				if byte_read == '~':
 					self.message_read = "".join(self.message_read[1:-1]) # remove first (^) and last (~), then join all characters into a string
-					print(self.message_read)
-					print('MESSAGE RECEIVED')
+					print('MESSAGE RECEIVED', self.message_read)
+					if(self.message_read == 'WIFI'):
+						if self.esp.is_connected:
+							self.sendShortMessage('WIFI') 	
 
-					if(self.message_read == 'WTHR'):
+					elif(self.message_read == 'WTHR'):
 						self.sendMessage(self.getWeather())
 
 					self.message_read = []
@@ -162,10 +189,14 @@ class Device:
 	def getWeather(self):
 		#self.sendShortMessage('WAIT')
 		JSON_URL = "http://api.open-meteo.com/v1/forecast?latitude=42.6576&longitude=-73.8018&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=America%2FNew_York&temporal_resolution=hourly_6&forecast_days=5&forecast_hours=24"
-		with self.requests.get(JSON_URL) as response:
-			myresp = response.json()
-			filtered = myresp['daily']
-			filtered['current_temp'] = myresp['current']['temperature_2m']
-			filtered['current_code'] = myresp['current']['weather_code']
-			print("JSON Response: ", filtered)
-			return json.dumps(filtered)
+		if self.esp.is_connected:
+			
+			with self.requests.get(JSON_URL) as response:
+				myresp = response.json()
+				filtered = myresp['daily']
+				filtered['current_temp'] = myresp['current']['temperature_2m']
+				filtered['current_code'] = myresp['current']['weather_code']
+				print("JSON Response: ", filtered)
+				return json.dumps(filtered)
+		else:
+			self.wifiConnect()

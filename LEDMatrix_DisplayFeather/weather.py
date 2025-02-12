@@ -26,15 +26,15 @@ class Effect(Effect):
 		self.p[3] = device.hls(.65, .2, 1)  # dk blue
 
 		self.datelabel = adafruit_display_text.label.Label(
-			device.font, color=self.p[0], background_color=None, text='', line_spacing=1,
+			device.font, color=self.p[0], background_color=None, text='Waiting', line_spacing=1,
 			label_direction='LTR',anchor_point=[.5,0],anchored_position=[self.device.display.width/2,0], base_alignment=True, background_tight=True)
 
 		self.label1 = adafruit_display_text.label.Label(
-			device.font, color=self.p[0], background_color=None, text='Getting', line_spacing=1,
+			device.font, color=self.p[0], background_color=None, text='For Wifi', line_spacing=1,
 			label_direction='LTR',anchor_point=[.5,1],anchored_position=[self.device.display.width/2,self.device.display.height-6], base_alignment=True, background_tight=True)
 
 		self.label2 = adafruit_display_text.label.Label(
-			device.font, color=self.p[0], background_color=None, text='Weathr', line_spacing=1,
+			device.font, color=self.p[0], background_color=None, text='', line_spacing=1,
 			label_direction='LTR',anchor_point=[.5,1],anchored_position=[self.device.display.width/2,self.device.display.height-1], base_alignment=True, background_tight=True)
 
 		self.icons = bitmap_font.load_font("fonts/weather.bdf")
@@ -51,6 +51,7 @@ class Effect(Effect):
 
 		self.days = []
 		self.data = '{"time": ["2025-02-07", "2025-02-08", "2025-02-09"], "precipitation_probability_max": [7, 84, 97], "temperature_2m_max": [35.2, 32.5, 31.4], "weather_code": [71, 73, 75], "temperature_2m_min": [20.8, 18.0, 10.4], "current_code": 3, "current_temp": 23.7}'
+		self.retryState = False
 
 		self.menu = [
 			{
@@ -59,18 +60,21 @@ class Effect(Effect):
 				'get': lambda: '<Press>'
 			}
 		]
+
+		if self.device.wifi == True:
+			self.resetPage() # reset message when switching effects and already on wifi
 	
 	def play(self):
+		if self.device.wifi == True:
+			if self.device.limitStep(self.lastWeatherGet, 300): # refresh every 30 minutes
+				if self.device.limitStep(self.lastWeatherTry, 5): #try every X seconds
+					self.requestWeather(0,False) # used when live
+					#self.handleMessage(self.data) # used when testing
+					self.lastWeatherTry = time.monotonic()
 
-		if self.device.limitStep(self.lastWeatherGet, 300): # refresh every 30 minutes
-			if self.device.limitStep(self.lastWeatherTry, 5): #try every 5 seconds
-				self.requestWeather(0,False) # used when live
-				#self.handleMessage(self.data) # used when testing
-				self.lastWeatherTry = time.monotonic()
-
-		if self.device.limitStep(self.lastPageTurn, 3):
-			self.currentPage = self.device.cycleOption([0,1,2,3], self.currentPage, 1)
-			self.showPage()
+			if self.device.limitStep(self.lastPageTurn, 3):
+				self.currentPage = self.device.cycleOption([0,1,2,3], self.currentPage, 1)
+				self.showPage()
 
 	def resetPage(self):
 		self.label1.text = 'Getting'
@@ -183,12 +187,14 @@ class Effect(Effect):
 				self.currentDay = 0
 				self.currentPage = 0
 				self.showPage()
-
 			else:
 				print('WRONG JSON')
 		except Exception as e:
 			locals()['menu'].showOverlay('Error', 1)
 			print('EXCEPTION', e)
+			self.label1.text = 'Enter'
+			self.label2.text = 'RetrY'
+			self.retryState = True
 		pass
 
 	def requestWeather(self, direction:int=0, closeMenu:bool=True):
@@ -200,8 +206,12 @@ class Effect(Effect):
 	
 	def handleRemote(self, key:str):
 		if key == 'Enter':
-			self.currentPage = self.device.cycleOption([0,1,2,3], self.currentPage, 1)
-			self.showPage()
+			if (self.retryState == True):
+				self.retryState = False
+				self.requestWeather(0,True)
+			else:
+				self.currentPage = self.device.cycleOption([0,1,2,3], self.currentPage, 1)
+				self.showPage()
 		elif key == 'Right' or key == 'Down':
 			self.currentDay = self.device.cycleOption([0,1,2,3,4], self.currentDay, 1)
 			self.showPage()
