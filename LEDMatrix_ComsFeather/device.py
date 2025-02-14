@@ -188,15 +188,26 @@ class Device:
 
 	def getWeather(self):
 		#self.sendShortMessage('WAIT')
-		JSON_URL = "http://api.open-meteo.com/v1/forecast?latitude=42.6576&longitude=-73.8018&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=America%2FNew_York&temporal_resolution=hourly_6&forecast_days=5&forecast_hours=24"
+
+		JSON_URL = "http://api.open-meteo.com/v1/forecast?latitude=42.6526&longitude=-73.7562&current=temperature_2m,weather_code&hourly=temperature_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=America%2FNew_York&forecast_days=5"
+
 		if self.esp.is_connected:
 			
 			with self.requests.get(JSON_URL) as response:
 				myresp = response.json()
-				filtered = myresp['daily']
+				print(myresp)
+				filtered = {}
+				filtered['temp'] = myresp['hourly']['temperature_2m']
+				filtered['code'] = myresp['daily']['weather_code']
+				filtered['hi'] = myresp['daily']['temperature_2m_max']
+				filtered['lo'] = myresp['daily']['temperature_2m_min']
+				filtered['time'] = myresp['daily']['time']
+				filtered['precip'] = myresp['daily']['precipitation_probability_max']
 				filtered['current_temp'] = myresp['current']['temperature_2m']
 				filtered['current_code'] = myresp['current']['weather_code']
 				print("JSON Response: ", filtered)
 				return json.dumps(filtered)
 		else:
 			self.wifiConnect()
+
+# {'time': ['2025-02-13', '2025-02-14', '2025-02-15'], 'precip': [47, 3, 92], 'code': [71, 3, 73], 'temp': [25.0, 25.2, 25.5, 26.5, 28.2, 30.1, 30.3, 32.0, 32.3, 33.1, 34.0, 34.2, 34.7, 35.4, 37.9, 38.3, 37.8, 38.2, 36.3, 32.4, 30.1, 29.4, 28.7, 28.6, 28.4, 27.5, 26.8, 24.8, 22.4, 21.9, 20.2, 18.9, 20.2, 21.8, 23.0, 24.4, 25.9, 26.3, 26.1, 27.3, 26.5, 24.8, 22.5, 21.1, 20.7, 19.4, 18.3, 17.7, 17.7, 17.8, 17.2, 16.6, 15.2, 14.5, 14.1, 14.0, 16.5, 19.5, 21.8, 24.3, 26.4, 29.0, 30.8, 30.9, 30.4, 29.3, 28.2, 27.2, 24.1, 24.9, 25.7, 26.9], 'hi': [38.3, 28.4, 30.9], 'current_code': 0, 'lo': [25.0, 17.7, 14.0], 'current_temp': 29.0}
