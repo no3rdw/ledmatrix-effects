@@ -18,7 +18,6 @@ menu.setDisplayClock(0)
 
 device.sendShortMessage('WIFI') # check to see if we already are connected on reboot
 
-
 while True:
 
 	device.receiveOverSerial()

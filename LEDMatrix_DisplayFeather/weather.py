@@ -10,7 +10,7 @@ class Effect(Effect):
 		super().__init__(device, self.name)
 		
 		self.device = locals()['device']
-		if not self.settings: #set defaults
+		if not self.settings: #set defaults 
 			self.settings = {"lat":42.6526,"lng":-73.7562}
 
 		self.device.clockcolor = 0xFF0000

@@ -51,7 +51,7 @@ class Device:
 		self.effect = None
 		self.settings = self.loadData('settings.json')
 		if not self.settings: # set defaults
-			self.settings = {"brightness":0.8,"startupEffect":"Static","displayClock":False,"displaySeconds":False}
+			self.settings = {"brightness":0.8,"startupEffect":"Static","displayClock":False,"displaySeconds":False,"startupWifi":False}
 
 		##### LED Matrix setup
 		self.matrix = rgbmatrix.RGBMatrix(
@@ -92,6 +92,9 @@ class Device:
 		self.message_read = []
 		self.messageToSend = []
 		self.wifi = False
+
+		if self.settings['startupWifi'] == 'True':
+			self.sendShortMessage('C2WF')
 
 	def cycleOption(self, optionList, selectedOption, direction):
 		currentIndex = optionList.index(selectedOption)
