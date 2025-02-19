@@ -245,8 +245,6 @@ class Device:
 					if len(self.message_read) == 8:
 						self.processRemoteKeypress(self.message_read)
 					else:
-						if "handleMessage" in dir(self.effect):
-							self.effect.handleMessage(self.message_read)
 						if self.message_read == 'WAIT':
 							locals()['menu'].showOverlay('Wait...', 10)
 						elif self.message_read == 'C2WF':
@@ -254,11 +252,18 @@ class Device:
 							locals()['menu'].showOverlay('WifiWait', 30)
 						elif self.message_read == 'WIFI':
 							self.wifi = True
-							locals()['menu'].showOverlay('Wifi!')	
+							locals()['menu'].showOverlay('Wifi!')
+						elif self.message_read == 'NOWI':
+							self.wifi = False
+							locals()['menu'].showOverlay('No Wifi')
 						elif self.message_read == 'ERRR':
 							locals()['menu'].showOverlay('Error')
 						else:
 							self.overlayDelay = self.overlayDelayDefault
+						
+						if "handleMessage" in dir(self.effect):
+							self.effect.handleMessage(self.message_read)
+
 
 					self.message_read = []
 					self.message_read_started = False

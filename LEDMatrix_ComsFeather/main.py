@@ -2,8 +2,6 @@ import time
 
 from device import Device
 device = Device()
-
-device.wifiConnect()
 device.setupIR()
 
 while True:

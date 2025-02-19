@@ -10,6 +10,8 @@ class Effect(Effect):
 		super().__init__(device, self.name)
 		
 		self.device = locals()['device']
+		if not self.settings: #set defaults
+			self.settings = {"lat":42.6526,"lng":-73.7562}
 
 		self.device.clockcolor = 0xFF0000
 		device.clearDisplayGroup(device.effect_group)
@@ -81,15 +83,15 @@ class Effect(Effect):
 		device.effect_group.append(self.tile_grid)
 
 		self.datelabel = adafruit_display_text.label.Label(
-			device.font, color=self.p[0], background_color=None, text='Waiting', line_spacing=1,
+			device.font, color=self.p[0], background_color=None, text='Connect', line_spacing=1,
 			label_direction='LTR',anchor_point=[.5,0],anchored_position=[self.device.display.width/2+1,1], base_alignment=True, background_tight=True)
 
 		self.label1 = adafruit_display_text.label.Label(
-			device.font, color=self.p[0], background_color=None, text='For Wifi', line_spacing=1,
-			label_direction='LTR',anchor_point=[.5,1],anchored_position=[self.device.display.width/2+1,self.device.display.height-5], base_alignment=True, background_tight=True)
+			device.font, color=self.p[0], background_color=None, text='to Wifi?', line_spacing=1,
+			label_direction='LTR',anchor_point=[.5,1],anchored_position=[self.device.display.width/2+1,self.device.display.height-6], base_alignment=True, background_tight=True)
 
 		self.label2 = adafruit_display_text.label.Label(
-			device.font, color=self.p[0], background_color=None, text='', line_spacing=1,
+			device.font, color=self.p[0], background_color=None, text='Enter', line_spacing=1,
 			label_direction='LTR',anchor_point=[.5,1],anchored_position=[self.device.display.width/2+1,self.device.display.height-1], base_alignment=True, background_tight=True)
 
 		self.icons = bitmap_font.load_font("fonts/weather.bdf")
@@ -110,10 +112,20 @@ class Effect(Effect):
 
 		self.menu = [
 			{
+				'label': 'LAT',
+				'set': self.setLat,
+				'get': lambda: str(self.settings['lat'])
+			},
+			{
+				'label': 'LNG',
+				'set': self.setLng,
+				'get': lambda: str(self.settings['lng'])
+			},
+			{
 				'label': 'Refresh',
 				'set': self.requestWeather,
 				'get': lambda: '<Press>'
-			}
+			},
 		]
 
 		self.testing = False
@@ -121,6 +133,13 @@ class Effect(Effect):
 		if self.device.wifi == True or self.testing == True:
 			self.resetPage() # reset message when switching effects and already on wifi
 	
+
+	def setLat(self, direction):
+		pass
+
+	def setLng(self, direction):
+		pass
+
 	def play(self):
 		if self.device.wifi == True or self.testing == True:
 			if self.device.limitStep(self.lastWeatherGet, 300): # refresh every 30 minutes
@@ -133,10 +152,15 @@ class Effect(Effect):
 				self.showPage()
 
 	def resetPage(self):
-		self.label1.text = 'Getting'
-		self.label2.text = 'Weathr'
+		if self.device.wifi == True:
+			self.datelabel.text = ''
+			self.label1.text = 'Getting'
+			self.label2.text = 'Weathr'
+		else:
+			self.datelabel.text = 'Connect'
+			self.label1.text = 'to Wifi?'
+			self.label2.text = 'Enter'
 		self.iconlabel.text = ''
-		self.datelabel.text = ''
 		self.label1.color = self.p[0]
 		self.label2.color = self.p[0]
 
@@ -267,6 +291,8 @@ class Effect(Effect):
 					self.showPage()
 			elif message == 'WIFI':
 				self.requestWeather(0,True)
+			elif message == 'NOWI':
+				self.resetPage()
 			else:
 				pass
 		except Exception as e:
@@ -284,11 +310,13 @@ class Effect(Effect):
 			locals()['menu'].hideMenu()
 		if self.testing == True:
 			self.handleMessage(self.testdata) 
-		else: self.device.sendShortMessage('WTHR') 
+		else: self.device.sendMessage(json.dumps(self.settings))
 	
 	def handleRemote(self, key:str):
 		if key == 'Enter':
-			if (self.retryState == True):
+			if (not self.device.wifi):
+				self.device.sendShortMessage('C2WF')
+			elif(self.retryState == True):
 				self.retryState = False
 				self.requestWeather(0,True)
 			else:
@@ -301,4 +329,8 @@ class Effect(Effect):
 			self.currentDay = self.device.cycleOption([0,1,2,3,4], self.currentDay, -1)
 			self.showPage()
 		elif key == 'StopMode':
-			self.requestWeather(0,True)
+			if (not self.device.wifi):
+				self.device.sendShortMessage('C2WF')
+			else:
+				self.retryState = False
+				self.requestWeather(0,True)

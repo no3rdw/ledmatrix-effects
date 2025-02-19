@@ -169,6 +169,11 @@ class Effect(Effect):
 				'get': lambda: self.device.settings['startupEffect']
 			},
 			{
+				'label': 'WifiStart',
+				'set': self.setStartupWifi,
+				'get': lambda: str(self.device.settings['startupWifi'])
+			},
+			{
 				'label': 'Save',
 				'set': self.saveSettings,
 				'get': lambda: '<Press>'
@@ -181,7 +186,8 @@ class Effect(Effect):
 		except: #when specified effect is not in effect list, load first in list
 			self.device.settings['startupEffect'] = locals()['effects'][0]
 
-
+	def setStartupWifi(self, direction:int):
+		self.device.settings['startupWifi'] = self.device.cycleOption(['False','True'], self.device.settings['startupWifi'], direction)
 
 	def setBrightness(self, direction:int):
 		self.device.cycleBrightness(direction)
