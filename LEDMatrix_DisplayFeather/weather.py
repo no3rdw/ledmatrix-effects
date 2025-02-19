@@ -15,8 +15,7 @@ class Effect(Effect):
 
 		self.device.clockcolor = 0xFF0000
 		device.clearDisplayGroup(device.effect_group)
-		self.lastWeatherGet = 0
-		self.lastWeatherTry = time.monotonic()
+		self.lastWeatherGet = time.monotonic()
 		self.lastPageTurn = 0
 		self.currentPage = 0
 		self.currentDay = 0
@@ -143,9 +142,7 @@ class Effect(Effect):
 	def play(self):
 		if self.device.wifi == True or self.testing == True:
 			if self.device.limitStep(self.lastWeatherGet, 300): # refresh every 30 minutes
-				if self.device.limitStep(self.lastWeatherTry, 20): #try every X seconds
-					self.requestWeather(0,False) # used when live
-					self.lastWeatherTry = time.monotonic()
+				self.requestWeather(0,False) # used when live
 
 			if self.device.limitStep(self.lastPageTurn, 3):
 				self.currentPage = self.device.cycleOption([0,1,2,3], self.currentPage, 1)
