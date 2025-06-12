@@ -111,16 +111,6 @@ class Effect(Effect):
 
 		self.menu = [
 			{
-				'label': 'LAT',
-				'set': self.setLat,
-				'get': lambda: str(self.settings['lat'])
-			},
-			{
-				'label': 'LNG',
-				'set': self.setLng,
-				'get': lambda: str(self.settings['lng'])
-			},
-			{
 				'label': 'Refresh',
 				'set': self.requestWeather,
 				'get': lambda: '<Press>'
@@ -132,17 +122,11 @@ class Effect(Effect):
 		if self.device.wifi == True or self.testing == True:
 			self.resetPage() # reset message when switching effects and already on wifi
 	
-
-	def setLat(self, direction):
-		pass
-
-	def setLng(self, direction):
-		pass
-
 	def play(self):
 		if self.device.wifi == True or self.testing == True:
 			if self.device.limitStep(self.lastWeatherGet, 300): # refresh every 30 minutes
 				self.requestWeather(0,False) # used when live
+				self.lastWeatherGet = time.monotonic()
 
 			if self.device.limitStep(self.lastPageTurn, 3):
 				self.currentPage = self.device.cycleOption([0,1,2,3], self.currentPage, 1)
@@ -158,17 +142,25 @@ class Effect(Effect):
 			self.label1.text = 'to Wifi?'
 			self.label2.text = 'Enter'
 		self.iconlabel.text = ''
-		self.label1.color = self.p[0]
-		self.label2.color = self.p[0]
 
 	def showPage(self):
 		self.lastPageTurn = time.monotonic()
 		if len(self.days):
+
+			if self.days[self.currentDay]['hi'] > 70:
+				self.datelabel.color = 0x00000
+				self.label1.color = 0x00000
+				self.label2.color = 0x00000
+				self.iconlabel.color = 0x00000
+			else:
+				self.datelabel.color = 0xFFFFFF
+				self.label1.color = 0xFFFFFF
+				self.label2.color = 0xFFFFFF
+				self.iconlabel.color = 0xFFFFFF
+
 			if self.currentPage == 0 and self.currentDay == 0:
 				self.datelabel.text = 'Current'
 				self.label1.text = 'Temp'
-				self.label1.color = self.p[0]
-				self.label2.color = self.p[0]
 				self.label2.text = str(self.days[self.currentDay]['current_temp']) + 'F'
 				c = self.days[self.currentDay]['current_code']
 			else:
@@ -184,20 +176,13 @@ class Effect(Effect):
 
 				if self.currentPage == 3:
 					self.label1.text = 'Precip'
-					#self.label1.color = self.p[3]
-					#self.label2.color = self.p[3]
 					self.label2.text = str(self.days[self.currentDay]['precip']) + '%'
 				elif self.currentPage == 2:
 					self.label1.text = 'Lo Temp'
-					#self.label1.color = self.p[1]
-					#self.label2.color = self.p[1]
 					self.label2.text = str(round(self.days[self.currentDay]['lo'])) + 'F'
 				else:
 					self.label1.text = 'Hi Temp'
-					#self.label1.color = self.p[2]
-					#self.label2.color = self.p[2]
 					self.label2.text = str(round(self.days[self.currentDay]['hi'])) + 'F'
-
 			
 			if c == 0:
 				icon = 'A'
@@ -209,7 +194,7 @@ class Effect(Effect):
 				icon = 'D'
 			elif c == 45 or c == 48:
 				icon = "I"
-			elif c == 51 or c == 53 or c == 61:
+			elif c == 51 or c == 53 or c == 61 or c == 80:
 				icon = 'E'
 			elif c == 55:
 				icon = "EE"
@@ -230,11 +215,6 @@ class Effect(Effect):
 
 			self.iconlabel.text = icon
 			self.drawBG(self.days[self.currentDay]['hours'])
-			if self.days[0]['current_temp'] > 70:
-				self.datelabel.color = 0x00000
-				self.label1.color = 0x00000
-				self.label2.color = 0x00000
-				self.iconlabel.color = 0x00000
 				
 		else:
 			pass

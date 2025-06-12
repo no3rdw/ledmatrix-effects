@@ -104,11 +104,14 @@ class Device:
 			print('EXCEPTION', e)
 			return False
 
-	def receiveOverSerial(self):		
-		#try:
+	def receiveOverSerial(self):
 			byte_read = self.uart.read(1)
 			if byte_read is not None:
-				byte_read = byte_read.decode('utf-8')
+				try:
+					byte_read = byte_read.decode('utf-8')
+				except:
+					print('ERROR decoding byte_read')
+					byte_read = ''
 				if byte_read == '^':
 					self.message_started = True
 				if self.message_started:
@@ -138,8 +141,6 @@ class Device:
 					self.message_read = []
 					self.message_started = False
 					self.uart.reset_input_buffer()
-		#except:
-		#	pass
 
 	def limitStep(self, limit:float, pastTick:float):
 		nowTick = time.monotonic()

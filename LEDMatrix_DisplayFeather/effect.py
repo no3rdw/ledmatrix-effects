@@ -20,6 +20,7 @@ class Effect:
 			}
         ]
 		#self.menu.extend(self.effectmenu)
+		self.device.clockcolor = 0x000000
 		
 		self.lastFrame = 0
 

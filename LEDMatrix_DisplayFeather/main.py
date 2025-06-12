@@ -4,9 +4,8 @@ supervisor.runtime.autoreload = False
 from device import Device
 device = Device()
 
-
 # working: 'Paint','Bounce','Midiviz, 'Grow','Worms','Sky','Static','ITYSL'
-effects = ['Grow','Weather','Static','Paint','Bounce','Worms','Sky','ITYSL']
+effects = ['Dotman','Grow','Weather','Static','Paint','Bounce','Worms','Sky','ITYSL']
 for e in effects:
 	locals()[e] = __import__(str.lower(e)).Effect
 	device.gc()
@@ -16,7 +15,7 @@ clock = __import__('clock').Effect(device)
 device.changeEffect(device.settings['startupEffect'])
 menu.setDisplayClock(0)
 
-device.sendShortMessage('WIFI') # check to see if we already are connected on reboot
+device.sendShortMessage('WIFI') # check to see if we already are connected on reboot 
 
 while True:
 
