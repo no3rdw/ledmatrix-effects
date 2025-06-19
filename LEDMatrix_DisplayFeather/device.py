@@ -1,5 +1,5 @@
 import board, time, json, math
-#from adafruit_neokey.neokey1x4 import NeoKey1x4
+from adafruit_neokey.neokey1x4 import NeoKey1x4
 import pcf8523
 import rgbmatrix
 import displayio
@@ -29,7 +29,7 @@ class Device:
 		################### Hardware Config ##################
 
 		# If no NeoKey module, replace the following line with the line below
-		#self.neokey = NeoKey1x4(self.i2c)
+		self.neokey = NeoKey1x4(self.i2c)
 		#self.neokey = None
 
 		# If no RTC module, replace the following line with the line below
@@ -39,14 +39,14 @@ class Device:
 		self.i2c.unlock()
 
 
-		#if hasattr(self.neokey, "pixels"):
-		#	self.neokey.pixels.brightness = 0
-		#	self.neokey.pixels[0] = (255,0,0)
-		#	self.neokey.pixels[1] = (255,0,0)
-		#	self.neokey.pixels[2] = (255,0,0)
-		#	self.neokey.pixels[3] = (255,0,0)
-		#else:
-		#	locals()['keys'] = [0,0,0,0]
+		if hasattr(self.neokey, "pixels"):
+			self.neokey.pixels.brightness = 0
+			self.neokey.pixels[0] = (255,0,0)
+			self.neokey.pixels[1] = (255,0,0)
+			self.neokey.pixels[2] = (255,0,0)
+			self.neokey.pixels[3] = (255,0,0)
+		else:
+			locals()['keys'] = [0,0,0,0]
 
 		self.effect = None
 		self.settings = self.loadData('settings.json')
@@ -93,8 +93,11 @@ class Device:
 		self.messageToSend = []
 		self.wifi = False
 
-		if self.settings['startupWifi'] == 'True':
-			self.sendShortMessage('C2WF')
+		self.lastButtonTick = 0
+		self.buttonPause = .10
+
+		#if self.settings['startupWifi'] == 'True':
+		#	self.sendShortMessage('C2WF')
 
 	def cycleOption(self, optionList, selectedOption, direction):
 		currentIndex = optionList.index(selectedOption)
@@ -143,9 +146,9 @@ class Device:
 	def getEffectName(self):
 		return self.effect.name
 
-	#def resetKeypixel(self, n:int):
-	#	if hasattr(self.neokey, "pixels"):
-	#		self.neokey.pixels[n] = 0
+	def resetKeypixel(self, n:int):
+		if hasattr(self.neokey, "pixels"):
+			self.neokey.pixels[n] = 0
 
 	def limitStep(self, limit:float, pastTick:float):
 		nowTick = time.monotonic()
