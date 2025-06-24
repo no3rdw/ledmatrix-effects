@@ -164,7 +164,7 @@ class Effect(Effect):
 		self.menu['options'] = [
 			{
 				'label': 'Settings',
-				'set': lambda d: d,
+				'set': lambda d: self.hideMenu(),
 				'get': lambda: 'Menu'
 			},
 			{	'label': 'Bright',
@@ -208,7 +208,7 @@ class Effect(Effect):
 		self.menu['options'] = [
 			{
 				'label': 'Clock',
-				'set': lambda d: d,
+				'set': lambda: self.hideMenu(),
 				'get': lambda: 'Menu'
 			},
 			{

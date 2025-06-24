@@ -329,13 +329,18 @@ class Device:
 		if len(foundAt):
 			key = table[foundAt[0]][1]
 			if not self.menu_group.hidden:
+				# let the menu effect handle button actions when the menu is displayed
 				locals()['menu'].handleRemote(key)
 			else:
+				# these are the button actions when the menu is NOT displayed
 				if key == 'Effect' or key == 'Clock' or key  == 'Settings':
 					locals()['menu'].showMenu(key)
-				elif key == 'PlayPause':
+				elif key == 'PlayPause' or key == 'Right':
 					self.cycleEffect(1)
+				elif key == 'Clear':
+					self.cycleEffect(-1)
 				else:
+					# all other buttons are handled by the current effect
 					self.effect.handleRemote(key)
 
 	def loadData(self, filename:str):
