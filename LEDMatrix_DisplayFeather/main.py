@@ -24,14 +24,10 @@ while True:
 	#if hasattr(device.neokey, "pixels"):
 	if device.limitStep(device.buttonPause, device.lastButtonTick):
 		keys = device.neokey.get_keys() # using this is MUCH faster than referencing device.neokey[x] over and over 
-		if keys[3]:
-			device.processRemoteKeypress('00FD20DF')
-		if keys[2]:
-			device.processRemoteKeypress('00FDA05F')
-		if keys[1]:
-			device.processRemoteKeypress('00FDB04F')
-		if keys[0]:
-			device.processRemoteKeypress('00FD906F')
+		device.processKey(3, keys[3], '00FDA05F', '00000003')
+		device.processKey(2, keys[2], '00FDB04F', '00000002')
+		device.processKey(1, keys[1], '00FD10EF', '00000001')
+		device.processKey(0, keys[0], '00FD50AF', '00000000')
 		device.lastButtonTick = time.monotonic()
 
 	if not device.menu_group.hidden: # only play the menu loop if menu is open

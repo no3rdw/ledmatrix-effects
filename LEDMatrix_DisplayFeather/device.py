@@ -38,13 +38,8 @@ class Device:
 
 		self.i2c.unlock()
 
-
 		if hasattr(self.neokey, "pixels"):
-			self.neokey.pixels.brightness = 0
-			self.neokey.pixels[0] = (255,0,0)
-			self.neokey.pixels[1] = (255,0,0)
-			self.neokey.pixels[2] = (255,0,0)
-			self.neokey.pixels[3] = (255,0,0)
+			self.neokey.pixels.brightness = 1
 		else:
 			locals()['keys'] = [0,0,0,0]
 
@@ -94,7 +89,14 @@ class Device:
 		self.wifi = False
 
 		self.lastButtonTick = 0
-		self.buttonPause = .10
+		self.buttonPause = .05
+		self.longPress = .3
+		self.keyDownTime = [0,0,0,0]
+		self.keyLongPress = [0,0,0,0]
+		self.keyColors = [(255,255,0),
+						(255,0,255),
+						(0,255,0),
+						(255,0,0)]
 
 		#if self.settings['startupWifi'] == 'True':
 		#	self.sendShortMessage('C2WF')
@@ -277,6 +279,23 @@ class Device:
 
 		#except:
 		#	pass
+
+	def processKey(self, n, keyDown, shortCode, longCode):
+		if keyDown:
+			self.neokey.pixels[n] = self.keyColors[n]
+			if self.keyDownTime[n] == 0:
+				self.keyDownTime[n] = time.monotonic()
+			elif time.monotonic() - self.keyDownTime[n] > self.longPress and not self.keyLongPress[n]:
+				self.keyLongPress[n] = 1
+				print('key', n, 'longpress')
+				self.processRemoteKeypress(longCode)
+		elif self.keyDownTime[n]:
+			if not self.keyLongPress[n]:
+				print('key', n, 'shortpress')
+				self.processRemoteKeypress(shortCode)
+			self.neokey.pixels[n] = (0,0,0)
+			self.keyDownTime[n] = 0
+			self.keyLongPress[n] = 0
 		
 	def processRemoteKeypress(self, code:str):
 		table = (("00FD00FF", "VolDown"),
@@ -299,7 +318,12 @@ class Device:
 				("00FD6897", "6"),
 				("00FD18E7", "7"),
 				("00FD9867", "8"),
-				("00FD58A7", "9"))
+				("00FD58A7", "9"),
+				("00000003", "Effect"),
+				("00000002", "Clock"),
+				("00000001", "Settings"),
+				("00000000", "Clear"))
+		# the last four values are the 'longPress' versions of the four keys
 		
 		foundAt = [index for index, value in enumerate(table) if value[0] == code]
 		if len(foundAt):
@@ -307,8 +331,8 @@ class Device:
 			if not self.menu_group.hidden:
 				locals()['menu'].handleRemote(key)
 			else:
-				if key == 'Setup':
-					locals()['menu'].showMenu()
+				if key == 'Effect' or key == 'Clock' or key  == 'Settings':
+					locals()['menu'].showMenu(key)
 				elif key == 'PlayPause':
 					self.cycleEffect(1)
 				else:

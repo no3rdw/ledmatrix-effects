@@ -13,9 +13,7 @@ class Effect(Effect):
 		self.caret = 0
 		self.offset = 0
 		
-		self.selectedMenu = 'Effect'
-		self.menus = ['Effect','Clock','Settings']
-
+		self.selectedMenu = None
 		self.setColors()
 
 		self.lastMenuRefresh = 0
@@ -59,22 +57,33 @@ class Effect(Effect):
 		device.overlay_group.append(self.overlay)
 		device.overlay_group.hidden = True
 		
-	def showMenu(self):
-		# call showMenu AFTER initial effect is loaded
-		self.refreshMenu()
-		self.device.menu_group.hidden = 0 # show menu
+	def showMenu(self, menuType='Effect'):
+		print(self.selectedMenu, menuType)
+		if self.selectedMenu == menuType:
+			self.hideMenu()
+		else:
+			self.selectedMenu = menuType
+			self.moveCaret(0, 0)
+			if menuType == 'Settings':
+				self.getSettingsMenu()
+			elif menuType == 'Clock':
+				self.getClockMenu()
+			else:
+				self.getEffectMenu()
+			self.device.menu_group.hidden = 0 # show menu
 
 	def hideMenu(self):
+		self.selectedMenu = None
 		self.device.menu_group.hidden = 1
 
 	def setColors(self):
 		self.menucolor = self.device.hls(.18, .5, 1)
-		if self.selectedMenu == 'Effect':
-			self.selectedcolor = self.device.hls(.01, .2, 1)
-		elif self.selectedMenu == 'Settings':
+		if self.selectedMenu == 'Settings':
 			self.selectedcolor = self.device.hls(.9, .3, 1)
 		elif self.selectedMenu == 'Clock':
 			self.selectedcolor = self.device.hls(.3, .2, 1)
+		else: 
+			self.selectedcolor = self.device.hls(.01, .2, 1)
 		self.optioncolor = self.device.hls(.6, .4, 1)
 
 	def refreshMenu(self):
@@ -106,7 +115,6 @@ class Effect(Effect):
 
 	def getEffectMenu(self):
 		#reset effect menu
-		self.selectedMenu = 'Effect'
 		self.menu['options'] = [{'label':'Effect', 'set':self.device.cycleEffect, 'get':self.device.getEffectName}]
 		if hasattr(self.device.effect, 'menu'):
 			i=0
@@ -114,15 +122,15 @@ class Effect(Effect):
 			while i<len(self.device.effect.menu):
 				self.menu['options'].append(self.device.effect.menu[i])
 				i += 1
-		self.refreshMenu()
 
 	def play(self):	
 		self.refreshMenu()
 
 	def handleRemote(self, key:str):
-		if key == 'Setup':
-			self.hideMenu()
-		elif key == 'Up':
+		#if key == 'Setup':
+			#self.hideMenu()
+		#el
+		if key == 'Up':
 			self.moveCaret(-1)
 		elif key == 'Down':
 			self.moveCaret(1)
@@ -130,15 +138,16 @@ class Effect(Effect):
 			self.changeOption(-1)
 		elif key == 'Right' or key == 'Enter':
 			self.changeOption(1)
-		elif key == 'StopMode':
-			self.moveCaret(0, 0)
-			self.selectedMenu = self.device.cycleOption(self.menus, self.selectedMenu, 1)
-			if self.selectedMenu == 'Effect':
-				self.getEffectMenu()
-			elif self.selectedMenu == 'Settings':
-				self.getSettingsMenu()
-			elif self.selectedMenu == 'Clock':
-				self.getClockMenu()
+		elif key == 'Effect':
+			self.showMenu('Effect')
+		elif key == 'Clock':
+			self.showMenu('Clock')
+		elif key == 'Settings':
+			self.showMenu('Settings')
+		elif key == 'Clear':
+			self.hideMenu()
+		elif key == 'Setup':
+			self.hideMenu()
 
 	def showOverlay(self, message:str, length:float=.7):
 		self.device.lastOverlayUpdate = time.monotonic()
@@ -152,7 +161,6 @@ class Effect(Effect):
 #	--------------------- SETTINGS MENU FUNCTIONS ---------------------------
 	def getSettingsMenu(self):
 		#reset settings menu
-		self.selectedMenu = 'Settings'
 		self.menu['options'] = [
 			{
 				'label': 'Settings',
@@ -178,7 +186,6 @@ class Effect(Effect):
 				'set': self.saveSettings,
 				'get': lambda: '<Press>'
 			}]
-		self.refreshMenu()
 		
 	def setStartupEffect(self, direction:int):
 		try:
@@ -198,7 +205,6 @@ class Effect(Effect):
 
 	def getClockMenu(self):
 		#reset clock menu
-		self.selectedMenu = 'Clock'
 		self.menu['options'] = [
 			{
 				'label': 'Clock',
@@ -230,7 +236,6 @@ class Effect(Effect):
 				'set': self.saveSettings,
 				'get': lambda: '<Press>'
 			}]
-		self.refreshMenu()
 
 	def setDisplayClock(self, direction:int):
 		self.device.settings['displayClock'] = self.device.cycleOption(['False','True'], self.device.settings['displayClock'], direction)

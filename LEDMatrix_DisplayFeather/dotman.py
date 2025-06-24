@@ -209,14 +209,15 @@ class Effect(Effect):
 			self.lastDotCheck = time.monotonic()
 
 	def handleRemote(self, key:str):
-		if key == 'Left':
-			Effect.moveObj(self.dotman,3)
-		elif key == 'Right':
-			Effect.moveObj(self.dotman,1)
-		elif key == 'Up':
-			Effect.moveObj(self.dotman,0)
-		elif key == 'Down':
-			Effect.moveObj(self.dotman,2)
+		#if key == 'Left':
+		#	Effect.moveObj(self.dotman,3)
+		#elif key == 'Right':
+		#	Effect.moveObj(self.dotman,1)
+		#elif key == 'Up':
+		#	Effect.moveObj(self.dotman,0)
+		#elif key == 'Down':
+		#	Effect.moveObj(self.dotman,2)
+		pass
 	
 	def loadMaze(self):
 		save = Effect.device.loadData('/dotmansaves/level1.json')
