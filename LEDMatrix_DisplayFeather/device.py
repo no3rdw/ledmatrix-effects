@@ -46,7 +46,7 @@ class Device:
 		self.effect = None
 		self.settings = self.loadData('settings.json')
 		if not self.settings: # set defaults
-			self.settings = {"brightness":0.8,"startupEffect":"Static","displayClock":False,"displaySeconds":False,"startupWifi":False}
+			self.settings = {"autoAdvanceSpeed":"None","brightness":0.8,"startupEffect":"Static","displayClock":False,"displaySeconds":False,"startupWifi":False}
 
 		##### LED Matrix setup
 		self.matrix = rgbmatrix.RGBMatrix(
@@ -97,6 +97,8 @@ class Device:
 						(255,0,255),
 						(0,255,0),
 						(255,0,0)]
+		
+		self.autoAdvanceTick = 0
 
 		#if self.settings['startupWifi'] == 'True':
 		#	self.sendShortMessage('C2WF')
@@ -114,11 +116,8 @@ class Device:
 		locals()['menu'].moveCaret(0, 0)
 		self.changeEffect(self.cycleOption(locals()['effects'], self.effect.name, direction))
 
-	def cycleBrightness(self, direction:int):
-		self.settings['brightness'] = self.cycleOption([.1,.2,.3,.4,.5,.6,.7,.8,.9,1], self.settings['brightness'], direction)
-		self.reloadEffect()
-
 	def changeEffect(self, e:str):
+		self.autoAdvanceTick = time.monotonic()
 		if not hasattr(self.effect, 'name') or e != self.effect.name:
 			try:
 				self.effect = locals()[e](self)

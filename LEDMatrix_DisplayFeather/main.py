@@ -30,6 +30,9 @@ while True:
 		device.processKey(0, keys[0], '00FD50AF', '00000000')
 		device.lastButtonTick = time.monotonic()
 
+		if device.menu_group.hidden and device.settings['autoAdvanceSpeed'] != 0 and device.limitStep(device.settings['autoAdvanceSpeed'], device.autoAdvanceTick):
+			device.cycleEffect(1)
+
 	if not device.menu_group.hidden: # only play the menu loop if menu is open
 		menu.play()
 

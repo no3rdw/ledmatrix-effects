@@ -177,15 +177,21 @@ class Effect(Effect):
 				'get': lambda: self.device.settings['startupEffect']
 			},
 			{
-				'label': 'WifiStart',
-				'set': self.setStartupWifi,
-				'get': lambda: str(self.device.settings['startupWifi'])
+				'label': 'AdvSpd',
+				'set': self.setAutoAdvanceSpeed,
+				'get': lambda: str(self.device.settings['autoAdvanceSpeed'])
 			},
 			{
 				'label': 'Save',
 				'set': self.saveSettings,
 				'get': lambda: '<Press>'
 			}]
+		
+		# {
+		#		'label': 'WifiStart',
+		#		'set': self.setStartupWifi,
+		#		'get': lambda: str(self.device.settings['startupWifi'])
+		#	},
 		
 	def setStartupEffect(self, direction:int):
 		try:
@@ -196,8 +202,15 @@ class Effect(Effect):
 	def setStartupWifi(self, direction:int):
 		self.device.settings['startupWifi'] = self.device.cycleOption(['False','True'], self.device.settings['startupWifi'], direction)
 
+	def setAutoAdvanceSpeed(self, direction:int):
+		self.device.settings['autoAdvanceSpeed'] = self.device.cycleOption([0,2,5,15,30,60,180,300,600], self.device.settings['autoAdvanceSpeed'], direction)
+
+	def cycleBrightness(self, direction:int):
+		self.device.settings['brightness'] = self.device.cycleOption([.1,.2,.3,.4,.5,.6,.7,.8,.9,1], self.device.settings['brightness'], direction)
+		self.device.reloadEffect()
+
 	def setBrightness(self, direction:int):
-		self.device.cycleBrightness(direction)
+		self.cycleBrightness(direction)
 		#self.__init__(self.device)
 		locals()['menu'].refreshMenu()
 
@@ -208,7 +221,7 @@ class Effect(Effect):
 		self.menu['options'] = [
 			{
 				'label': 'Clock',
-				'set': lambda: self.hideMenu(),
+				'set': lambda d: self.hideMenu(),
 				'get': lambda: 'Menu'
 			},
 			{
