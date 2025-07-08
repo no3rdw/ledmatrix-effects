@@ -23,10 +23,10 @@ class Effect(Effect):
 			while pos < 4:
 				if 88 in vis[pos] and vis[pos].index(88) < 2:
 					posList = [self.back] # ghost is close, turn around
-					print('ghost spotted nearby') # not a valid direction
-					
+					#print('ghost spotted nearby', pos) # not a valid direction
+					break
 				elif 88 in vis[pos] and vis[pos].index(88):
-					print ('ghost further away')
+					#print ('ghost further away', pos)
 					posList.append(pos)
 				elif len(vis[pos]):
 					posList.append(pos)
@@ -48,6 +48,7 @@ class Effect(Effect):
 					#print('straight', direction, posList)
 				elif sum(m) > 0: # at least one direction has dots in view, go that way
 					direction = m.index(max(m))
+					#print('dots',direction, posList)
 				else:
 					# choose a random direction
 					direction = posList[random.randrange(0,len(posList))]
@@ -56,15 +57,12 @@ class Effect(Effect):
 				direction = posList[0]
 				#print('noopt', direction)
 			else:
-				print('how did we get here?')
+				pass
+				#print('how did we get here?')
 			#print(posList)
 
 			#direction = posList[random.randrange(0,len(posList))]
 			Effect.moveObj(self, direction)
-			#print('ghost0', Effect.ghosts[0].x, Effect.ghosts[0].y)
-			#print('dotman', Effect.dotman.x, Effect.dotman.y)
-
-			
 			
 	class Ghost(Effect):
 		def __init__(self, color):
@@ -73,6 +71,11 @@ class Effect(Effect):
 			self.heading = 0
 			self.back = 2
 			self.color = color
+
+		def checkHit(self):
+			if Effect.dotman.x == self.x and Effect.dotman.y == self.y:
+				# DOTMAN DIED
+				Effect.dotman.reset()
 
 		def decideMove(self):
 			vis = Effect.checkVisRange(self)
@@ -104,15 +107,8 @@ class Effect(Effect):
 				direction = posList[0]
 				#print('noopt', direction)
 
-			if Effect.dotman.x == self.x and Effect.dotman.y == self.y:
-				# DOTMAN DIED
-				Effect.dotman.reset()
-
 			Effect.moveObj(self, direction)
 
-			if Effect.dotman.x == self.x and Effect.dotman.y == self.y:
-				# DOTMAN DIED
-				Effect.dotman.reset()
 	
 	def __init__(self, device:Device):
 		self.name = 'Dotman'
@@ -187,14 +183,14 @@ class Effect(Effect):
 			self.drawSprites()
 			self.lastFrame = time.monotonic()
 			
-		if (self.device.limitStep(.1, self.lastGhostMove)):
+		if (self.device.limitStep(.2, self.lastGhostMove)):
 			g = 0
 			while g < self.maxGhosts:
-				self.ghosts[g].decideMove() # ghosts move first, see dotman's last x,y positi3on and write new ghost positions
+				self.ghosts[g].decideMove() # ghosts move first, see dotman's last x,y position and write new ghost positions
 				g = g + 1
 			self.lastGhostMove = time.monotonic()
 
-		if (self.device.limitStep(.08, self.lastDotmanMove)):
+		if (self.device.limitStep(.14, self.lastDotmanMove)):
 			self.dotman.decideMove() # dotman moves second, looks to sprites layer for ghosts' updated positions
 			self.lastDotmanMove = time.monotonic()
 
@@ -232,6 +228,7 @@ class Effect(Effect):
 		g = 0
 		while g < self.maxGhosts:
 			self.sprites[self.ghosts[g].x,self.ghosts[g].y] = self.ghosts[g].color+3 # write ghost to sprites layer
+			self.ghosts[g].checkHit()
 			g = g + 1
 
 
@@ -254,10 +251,9 @@ class Effect(Effect):
 			obj.back = 0
 			obj.y = [lambda: 0, lambda: obj.y + 1][obj.y + 1 < Effect.device.display.height]()
 			
-		if Effect.maze[obj.x,obj.y] != 9:
-			if obj.__class__.__name__ == 'Dotman' and Effect.maze[obj.x,obj.y] > 0:
-				Effect.maze[obj.x,obj.y] = 1 # remove dots by painting over with black
-				pass
+		if obj.__class__.__name__ == 'Dotman' and Effect.maze[obj.x,obj.y] > 0:
+			Effect.maze[obj.x,obj.y] = 1 # remove dots by painting over with black
+			pass
 
 		return (obj.x,obj.y)
 			

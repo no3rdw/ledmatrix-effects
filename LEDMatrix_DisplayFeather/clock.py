@@ -12,15 +12,15 @@ class Effect:
 		
 		self.clockPositions = [		
 			{'anchor_point':[0,0],'anchored_position':[1,1]},	 		
-			{'anchor_point':[0,1],'anchored_position':[1,31]},
-			{'anchor_point':[1,0],'anchored_position':[32,1]},
-			{'anchor_point':[1,1],'anchored_position':[32,31]}
+			{'anchor_point':[0,1],'anchored_position':[1,self.device.display.height-1]},
+			{'anchor_point':[1,0],'anchored_position':[self.device.display.width,1]},
+			{'anchor_point':[1,1],'anchored_position':[self.device.display.width,self.device.display.height-1]}
 		]
 		self.selectedClockPosition = 1
 	
 		self.clocklabel = adafruit_display_text.label.Label(
 			device.font, color=self.device.clockcolor, background_color=None, text='', line_spacing=1,
-			label_direction='LTR',anchor_point=[0,1],anchored_position=[1,31], base_alignment=True, background_tight=True)
+			label_direction='LTR',anchor_point=[0,1],anchored_position=[1,self.device.display.height-1], base_alignment=True, background_tight=True)
 
 		device.clearDisplayGroup(device.clock_group)
 		device.clock_group.append(self.clocklabel)

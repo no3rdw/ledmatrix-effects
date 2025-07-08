@@ -39,7 +39,7 @@ class Effect(Effect):
 
 		self.optionlabel = adafruit_display_text.label.Label(
 			device.font, color=self.optioncolor, background_color=0x000000, text='OPTION', line_spacing=1,
-			label_direction='LTR',anchor_point=[0,1],anchored_position=[1,31], background_tight=True)
+			label_direction='LTR',anchor_point=[0,1],anchored_position=[1,self.device.display.height-1], background_tight=True)
 
 		device.clearDisplayGroup(device.menu_group)
 		device.menu_group.append(self.menu['labels'][0])
@@ -52,7 +52,7 @@ class Effect(Effect):
 
 		self.overlay = adafruit_display_text.label.Label(
 			device.font, color=self.menucolor, background_color=0x000000, text='Overlay', line_spacing=1,
-			label_direction='LTR',anchor_point=[0,1],anchored_position=[1,31], background_tight=True)
+			label_direction='LTR',anchor_point=[0,1],anchored_position=[1,self.device.display.height-1], background_tight=True)
 		
 		device.overlay_group.append(self.overlay)
 		device.overlay_group.hidden = True
