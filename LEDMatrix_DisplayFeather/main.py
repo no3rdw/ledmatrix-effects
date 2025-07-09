@@ -4,8 +4,7 @@ supervisor.runtime.autoreload = False
 from device import Device
 device = Device()
 
-# working: 'Paint','Bounce','Midiviz, 'Grow','Worms','Sky','Static','ITYSL'
-effects = ['Grow','Static','Bounce','Worms','Sky','ITYSL','Dotman']
+effects = ['Colorbars','Grow','Static','Bounce','Worms','Sky','ITYSL','Dotman']
 for e in effects:
 	locals()[e] = __import__(str.lower(e)).Effect
 	device.gc()

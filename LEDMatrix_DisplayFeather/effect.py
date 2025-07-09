@@ -21,6 +21,8 @@ class Effect:
         ]
 		#self.menu.extend(self.effectmenu)
 		self.device.clockcolor = 0x000000
+		self.device.clockposition = None
+		#self.device.clockposition = {'anchor_point':[0,0],'anchored_position':[1,1]}
 		
 		self.lastFrame = 0
 

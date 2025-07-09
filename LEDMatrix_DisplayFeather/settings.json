@@ -1,1 +1,1 @@
-{"autoAdvanceSpeed":0, "clockPosition": "Cycle", "clockColor": "Black", "displayClock": "False", "displaySeconds": "False", "brightness": 0.8, "startupEffect": "Grow", "startupWifi": "False"}
+{"autoAdvanceSpeed":0, "clockPosition": "Cycle", "displayClock": "True", "displaySeconds": "False", "brightness": 0.8, "startupEffect": "Colorbars", "startupWifi": "False"}

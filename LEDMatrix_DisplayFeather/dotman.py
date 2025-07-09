@@ -146,7 +146,9 @@ class Effect(Effect):
 		
 		self.loadMaze()
 
-		self.device.clockcolor = 0xFFFFFF
+		self.device.clockcolor = self.p[2]
+		self.device.clockposition = {'anchor_point':[.5,1],'anchored_position':[17,32]}
+
 		self.menu = [
 			#{
 			#	'label': 'Label',

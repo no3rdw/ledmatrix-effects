@@ -15,7 +15,7 @@ class Effect(Effect):
 
 		# Create color palettes
 		self.palettes = []
-		self.paletteNames = ['Pinks', 'B&W', 'Rainbow']
+		self.paletteNames = ['Pinks', 'B&W', 'Rainbow','Geode']
 		
 		p = displayio.Palette(6)
 		p[0] = device.hls(.8, .1, 1)
@@ -48,7 +48,24 @@ class Effect(Effect):
 		p[9] = device.hls(.0, .4, 1)
 		self.palettes.append(p)
 
-		self.clockcolors = [0x000000,0x000000,0x000000]
+		p = displayio.Palette(14)
+		p[0] = device.hls(0, 0, 0) # black
+		p[1] = device.hls(.2, .5, .7) # yellow
+		p[2] = device.hls(.5, .4, .7) # cyan
+		p[3] = device.hls(.3, .25, .8) # green
+		p[4] = device.hls(.8, .2, .8) # magenta
+		p[5] = device.hls(0, .35, .85) # red
+		p[6] = device.hls(.65, .1, 1) # blue
+		p[7] = device.hls(.65, .04, .9) # navy
+		p[8] = device.hls(.75, .04, .8) # purple
+		p[9] = device.hls(.65, .04, .9) # navy
+		p[10] = device.hls(.75, .04, .8) # purple
+		p[11] = device.hls(0, 0, 0) # black
+		p[12] = device.hls(0, 0, 0) # black
+		p[13] = device.hls(0, 0, 0) # black
+		self.palettes.append(p)
+
+		self.clockcolors = [0x000000,0x000000,0x000000,0xFFFFFF]
 
 		self.colorcount = len(self.palettes[self.settings['selectedPalette']])
 		self.bitmap = displayio.Bitmap(self.device.display.width, self.device.display.height, self.colorcount)

@@ -10,6 +10,10 @@ class Effect(Effect):
 		if not self.settings: #set defaults
 			self.settings = {'setting':'default'}
 
+		self.device.clockcolor = 0x000000
+		self.device.clockposition = None
+		#self.device.clockposition = {'anchor_point':[0,0],'anchored_position':[1,1]}
+
 		device.clearDisplayGroup(device.effect_group)
 
 		self.menu = [

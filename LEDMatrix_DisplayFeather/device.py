@@ -82,7 +82,11 @@ class Device:
 		self.overlayDelay = self.overlayDelayDefault
 
 		self.lastOverlayUpdate = 0
+
+		# initialize clock defaults - should also be set in effect.py to revert to defaults if not specified by selected effect
 		self.clockcolor = 0x000000
+		self.clockposition = None
+
 		self.message_read_started = False
 		self.message_read = []
 		self.messageToSend = []
@@ -117,6 +121,7 @@ class Device:
 		self.changeEffect(self.cycleOption(locals()['effects'], self.effect.name, direction))
 
 	def changeEffect(self, e:str):
+		locals()['clock'].updateClock()
 		self.autoAdvanceTick = time.monotonic()
 		if not hasattr(self.effect, 'name') or e != self.effect.name:
 			try:
