@@ -41,6 +41,6 @@ class Effect:
 			self.clocklabel.anchored_position = self.device.clockposition['anchored_position']
 
 	def play(self):
-		if (self.device.limitStep(.4, self.lastFrame)):
+		if (self.device.limitStep(.3, self.lastFrame)):
 			self.updateClock()
 			self.lastFrame = time.monotonic()

@@ -27,7 +27,7 @@ class Effect(Effect):
 				'gravity': lambda : random.randint(30,70)/100,
 				'dx': lambda : -1, # varying the x travel distance does not work well when the border/labels are enabled
 				'trail': True,
-				'clockcolor': 0x000000
+				'clockcolor': 0x2222FF
 			},
 			'90s': {
 				'cardcolors': [3,1,4,5,6,7],

@@ -121,7 +121,6 @@ class Device:
 		self.changeEffect(self.cycleOption(locals()['effects'], self.effect.name, direction))
 
 	def changeEffect(self, e:str):
-		locals()['clock'].updateClock()
 		self.autoAdvanceTick = time.monotonic()
 		if not hasattr(self.effect, 'name') or e != self.effect.name:
 			try:
@@ -129,6 +128,7 @@ class Device:
 			except: #on error, or specified effect is not in effect list, load first in list
 				self.effect = locals()[locals()['effects'][0]](self)
 			locals()['menu'].getEffectMenu()
+			locals()['clock'].updateClock()
 			self.gc(1)
 
 	def reloadEffect(self):
