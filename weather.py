@@ -117,7 +117,7 @@ class Effect(Effect):
 			},
 		]
 
-		self.testing = False
+		self.testing = True
 
 		if self.device.wifi == True or self.testing == True:
 			self.resetPage() # reset message when switching effects and already on wifi
